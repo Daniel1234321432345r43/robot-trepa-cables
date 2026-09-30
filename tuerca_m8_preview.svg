@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" viewBox="0 0 45 45">
+  <rect width="100%" height="100%" fill="#1e1e2e"/>
+  <polygon points="79.2,51.1 12.7,89.5 -53.8,51.1 -53.8,-25.7 12.7,-64.1 79.2,-25.7" fill="#89b4fa" stroke="#cdd6f4" stroke-width="2"/>
+  <circle cx="12.678758580222024" cy="12.678758580222024" r="41.0" fill="#1e1e2e" stroke="#cdd6f4" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="12.678758580222024" y="33.35751716044405" fill="#cdd6f4" font-family="monospace" font-size="11" text-anchor="middle">Tuerca M8 - vista superior (mm x 10)</text>
+</svg>

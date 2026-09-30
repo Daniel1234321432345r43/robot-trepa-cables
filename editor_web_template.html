@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Editor 3D · @@SELLO@@ · robot sobre cable</title>
+<style>
+  :root{
+    --fondo:#0e1013;
+    --panel:rgba(23,26,32,.9);
+    --borde:rgba(255,255,255,.07);
+    --borde-fuerte:rgba(255,255,255,.14);
+    --control:rgba(255,255,255,.055);
+    --control-hover:rgba(255,255,255,.115);
+    --texto:#eef1f6;
+    --tenue:#9aa3b2;
+    --suave:#6b7482;
+    --acento:#7aa2f7;
+    --acento-tenue:rgba(122,162,247,.16);
+    --peligro:#f2705f;
+    --peligro-tenue:rgba(242,112,95,.16);
+    --cristal:rgba(14,16,19,.74);
+    --lienzo:#14171b;
+    --sombra:0 20px 48px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.35);
+    --radio:18px; --radio-m:12px; --radio-s:9px;
+  }
+  /* tema claro: se aclara todo, incluido el lienzo 3D, que pasa a fondo blanco
+     puro. --lienzo es el marco de la vista, así que también se aclara: si no,
+     se vería un borde oscuro alrededor del canvas blanco */
+  body[data-tema="claro"]{
+    --fondo:#e8eaee;
+    --panel:rgba(255,255,255,.92);
+    --borde:rgba(16,24,40,.09);
+    --borde-fuerte:rgba(16,24,40,.2);
+    --control:rgba(16,24,40,.045);
+    --control-hover:rgba(16,24,40,.09);
+    --texto:#171c26;
+    --tenue:#5a6371;
+    --suave:#8b93a1;
+    --acento:#2f6fed;
+    --acento-tenue:rgba(47,111,237,.12);
+    --peligro:#d3452f;
+    --peligro-tenue:rgba(211,69,47,.12);
+    --cristal:rgba(255,255,255,.85);
+    --lienzo:#f8f9fb;
+    --sombra:0 20px 48px rgba(16,24,40,.16), 0 2px 6px rgba(16,24,40,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--fondo);color:var(--texto);
+    font:13px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  #app{display:flex;gap:14px;padding:14px;height:100%}
+
+  /* ------------------------------------------------ panel lateral */
+  #panel{width:344px;min-width:344px;background:var(--panel);border:1px solid var(--borde);
+    border-radius:var(--radio);box-shadow:var(--sombra);backdrop-filter:blur(18px) saturate(150%);
+    display:flex;flex-direction:column;overflow:hidden}
+  #cab{display:flex;align-items:center;gap:11px;padding:15px 15px 13px;
+    border-bottom:1px solid var(--borde)}
+  #cab .logo{width:34px;height:34px;flex:0 0 auto;border-radius:11px;display:grid;
+    place-items:center;color:#fff;background:linear-gradient(150deg,var(--acento),#5d6cc9)}
+  #cab .logo svg{width:18px;height:18px}
+  #cab h1{margin:0;font-size:14px;font-weight:650;letter-spacing:.1px}
+  #cab .sub{margin:1px 0 0;font-size:11px;color:var(--tenue)}
+  #cab .crecer{flex:1;min-width:0}
+  #cab .sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Sello de compilación: sirve para saber de un vistazo si lo que se está
+     viendo es el archivo recién generado o una copia vieja que el navegador
+     tenía en caché (que es un problema real al abrirlo una y otra vez). */
+  #cab .sello{flex:0 0 auto;font-size:10px;letter-spacing:.4px;color:var(--suave);
+    background:var(--control);border:1px solid var(--borde);border-radius:8px;
+    padding:2px 7px;white-space:nowrap;cursor:default}
+  .cuerpo{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:10px}
+  .seccion{padding:0 14px}
+  .seccion h2{margin:16px 0 9px;font-size:10.5px;font-weight:700;letter-spacing:1.1px;
+    color:var(--suave);text-transform:uppercase}
+  .rejilla2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+  /* ------------------------------------------------ botones */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;
+    font-size:12px;font-weight:500;padding:8px 10px;width:100%;color:var(--texto);cursor:pointer;
+    background:var(--control);border:1px solid var(--borde);border-radius:var(--radio-s);
+    transition:background .13s,border-color .13s,transform .07s}
+  .btn svg{width:15px;height:15px;flex:0 0 auto}
+  .btn:hover:not(:disabled){background:var(--control-hover);border-color:var(--borde-fuerte)}
+  .btn:active:not(:disabled){transform:translateY(1px)}
+  .btn:disabled{opacity:.34;cursor:not-allowed}
+  .btn.icono{width:auto;padding:8px}
+  .btn.acento{background:var(--acento);border-color:transparent;color:#fff;font-weight:600}
+  .btn.acento:hover:not(:disabled){filter:brightness(1.08)}
+  .btn.peligro:hover:not(:disabled){background:var(--peligro-tenue);
+    border-color:var(--peligro);color:var(--peligro)}
+  .btn.puesto{background:var(--acento-tenue);border-color:var(--acento);color:var(--acento)}
+
+  /* ------------------------------------------------ color */
+  .franja-color{display:flex;align-items:center;gap:8px}
+  input[type=color]{-webkit-appearance:none;appearance:none;width:46px;height:36px;padding:3px;
+    border:1px solid var(--borde);border-radius:var(--radio-s);background:var(--control);
+    cursor:pointer;flex:0 0 auto}
+  input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+  input[type=color]::-webkit-color-swatch{border:none;border-radius:6px}
+  input[type=text]{flex:1;min-width:0;font:inherit;font-size:12px;letter-spacing:.6px;
+    padding:9px 10px;border-radius:var(--radio-s);background:var(--control);color:var(--texto);
+    border:1px solid var(--borde);text-transform:uppercase}
+  input[type=text]:focus{outline:none;border-color:var(--acento);background:var(--control-hover)}
+  .muestras{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .muestra{width:23px;height:23px;padding:0;border-radius:7px;cursor:pointer;
+    border:1px solid var(--borde-fuerte);transition:transform .12s,box-shadow .12s}
+  .muestra:hover{transform:translateY(-1px) scale(1.08)}
+  .muestra.activa{box-shadow:0 0 0 2px var(--acento)}
+
+  /* ------------------------------------------------ campos */
+  .campos{display:grid;grid-template-columns:36px 1fr 1fr 1fr;gap:7px;align-items:center}
+  .campos label{font-size:10px;color:var(--suave);letter-spacing:.8px;text-transform:uppercase}
+  input[type=number]{width:100%;min-width:0;font:inherit;font-size:12px;padding:8px 8px;
+    border-radius:var(--radio-s);background:var(--control);color:var(--texto);
+    border:1px solid var(--borde)}
+  input[type=number]:focus{outline:none;border-color:var(--acento);background:var(--control-hover)}
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+  /* ------------------------------------------------ lista de piezas */
+  #lista{padding:0 10px}
+  .grupo{display:flex;align-items:center;gap:7px;margin:15px 5px 5px;font-size:10px;
+    font-weight:700;letter-spacing:1.1px;color:var(--suave);text-transform:uppercase}
+  .grupo::after{content:"";flex:1;height:1px;background:var(--borde)}
+  .pieza{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:var(--radio-s);
+    cursor:pointer;transition:background .12s}
+  .pieza:hover{background:var(--control)}
+  .pieza.sel{background:var(--acento-tenue)}
+  .pieza.sel .nombre{color:var(--acento);font-weight:600}
+  .pieza.borrada{opacity:.4}
+  .pieza.borrada .nombre{text-decoration:line-through}
+  .pieza .color{width:12px;height:12px;flex:0 0 auto;border-radius:4px;
+    box-shadow:0 0 0 1px var(--borde-fuerte) inset}
+  .pieza .nombre{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pieza .ojo{display:grid;place-items:center;width:24px;height:24px;padding:0;cursor:pointer;
+    background:none;border:none;border-radius:6px;color:var(--suave)}
+  .pieza .ojo svg{width:14px;height:14px}
+  .pieza .ojo:hover{background:var(--control-hover);color:var(--texto)}
+
+  /* ------------------------------------------------ vista 3D */
+  #vista{position:relative;flex:1;min-width:0;border-radius:var(--radio);overflow:hidden;
+    border:1px solid var(--borde);background:var(--lienzo);box-shadow:var(--sombra)}
+  #cv{display:block;width:100%;height:100%}
+  /* sobre lienzo blanco las pastillas de las etiquetas necesitan un borde algo
+     mas marcado para no desaparecer */
+  body[data-tema="claro"] .et{box-shadow:0 2px 9px rgba(16,24,40,.13)}
+  #etiquetas{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .et{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:10.5px;
+    letter-spacing:.4px;color:var(--texto);background:var(--cristal);padding:3px 9px;
+    border-radius:20px;border:1px solid var(--borde);backdrop-filter:blur(6px)}
+  #hud{position:absolute;left:14px;bottom:14px;max-width:72%;font-size:11.5px;color:var(--tenue);
+    background:var(--cristal);padding:8px 12px;border-radius:var(--radio-m);
+    border:1px solid var(--borde);backdrop-filter:blur(8px);pointer-events:none}
+  #hud b{color:var(--texto);font-weight:600}
+  #ajuda{position:absolute;right:14px;top:14px;font-size:11px;color:var(--tenue);line-height:2;
+    background:var(--cristal);padding:9px 12px;border-radius:var(--radio-m);
+    border:1px solid var(--borde);backdrop-filter:blur(8px);pointer-events:none}
+  kbd{font:inherit;font-size:10px;color:var(--texto);background:var(--control);
+    border:1px solid var(--borde-fuerte);border-radius:5px;padding:1px 5px}
+  #fallo{position:absolute;inset:0;display:none;place-items:center;padding:40px;text-align:center;
+    color:var(--peligro);background:var(--fondo)}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="panel">
+    <header id="cab">
+      <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+        stroke-linejoin="round"><path d="M12 2.6l8 4.6v9.6l-8 4.6-8-4.6V7.2z"/>
+        <path d="M12 12l8-4.6M12 12v9.4M12 12L4 7.4"/></svg></span>
+      <div class="crecer">
+        <h1>Editor 3D</h1>
+        <p class="sub" id="info">cargando…</p>
+      </div>
+      <span class="sello" id="sello" title="Fecha de compilación de este archivo. Si no coincide con la última que te di, estás viendo una copia en caché: recarga con Ctrl+Mayús+R">@@SELLO@@</span>
+      <button id="b-tema" class="btn icono" title="Cambiar tema (claro / oscuro)" aria-label="Cambiar tema">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+          stroke-linecap="round"><path d="M20.5 14.3A8.5 8.5 0 019.7 3.5a8.5 8.5 0 1010.8 10.8z"/></svg>
+      </button>
+    </header>
+
+    <div class="cuerpo">
+      <section class="seccion">
+        <h2>Selección</h2>
+        <div class="rejilla2">
+          <button id="b-isolar" class="btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round"><circle cx="12" cy="12" r="7"/>
+              <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Aislar</button>
+          <button id="b-ocultar" class="btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/>
+              <path d="M10.6 5.2A10 10 0 0112 5c6.4 0 10 7 10 7a17 17 0 01-3.1 4"/>
+              <path d="M6.4 6.6C3.7 8.5 2 12 2 12s3.6 7 10 7a9.8 9.8 0 004.3-1"/></svg>
+            <span id="ocultar-txt">Ocultar</span></button>
+        </div>
+        <div class="rejilla2" style="margin-top:7px">
+          <button id="b-duplicar" class="btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/>
+              <path d="M5 15V7a2 2 0 012-2h8"/></svg>Duplicar</button>
+          <button id="b-borrar" class="btn peligro" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/>
+              <path d="M9.5 7V4h5v3"/><path d="M6.5 7l1 13h9l1-13"/></svg>Borrar</button>
+        </div>
+        <div class="rejilla2" style="margin-top:7px">
+          <button id="b-mostrar" class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/>
+              <circle cx="12" cy="12" r="3"/></svg>Ver todo</button>
+          <button id="b-restaurar" class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11a5 5 0 010 10h-6"/>
+              <path d="M8 6l-4 4 4 4"/></svg>Restaurar</button>
+        </div>
+      </section>
+
+      <section class="seccion">
+        <h2>Color</h2>
+        <div class="franja-color">
+          <input type="color" id="picker" value="#ffffff" disabled
+            title="Color del objeto seleccionado">
+          <input type="text" id="hex" value="#ffffff" maxlength="7" spellcheck="false"
+            disabled aria-label="Codigo de color">
+        </div>
+        <div class="muestras" id="muestras"></div>
+        <div class="rejilla2" style="margin-top:9px">
+          <button id="b-blanco" class="btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <circle cx="12" cy="12" r="8"/></svg>Blanco</button>
+          <button id="b-original" class="btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linejoin="round"><path d="M12 3a9 9 0 100 18h1.4a2.4 2.4 0 000-4.8H13a2 2 0 01-2-2
+              2 2 0 012-2h2.4A4.6 4.6 0 0020 7.6C20 5 16.4 3 12 3z"/>
+              <circle cx="7.6" cy="12.4" r="1.1" fill="currentColor"/></svg>Original</button>
+        </div>
+        <button id="b-todo" class="btn" style="margin-top:7px" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+            stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>
+          <span id="todo-txt">Aplicar a todas</span></button>
+      </section>
+
+      <section class="seccion">
+        <h2>Transformar</h2>
+        <div class="campos">
+          <label>Pos</label>
+          <input type="number" id="px" step="1" placeholder="—" disabled>
+          <input type="number" id="py" step="1" placeholder="—" disabled>
+          <input type="number" id="pz" step="1" placeholder="—" disabled>
+          <label>Giro</label>
+          <input type="number" id="rx" step="15" placeholder="—" disabled>
+          <input type="number" id="ry" step="15" placeholder="—" disabled>
+          <input type="number" id="rz" step="15" placeholder="—" disabled>
+        </div>
+        <div class="rejilla2" style="margin-top:9px">
+          <button id="b-centro" class="btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round"><circle cx="12" cy="12" r="3"/>
+              <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Origen</button>
+          <button id="b-giro0" class="btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1014.4-6.1"/>
+              <path d="M19 3.5V9h-5.4"/></svg>Sin giro</button>
+        </div>
+        <button id="b-reset" class="btn" style="margin-top:7px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+            stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 0114.2-6.2"/>
+            <path d="M20.5 12a8.5 8.5 0 01-14.2 6.2"/><path d="M18.5 3v3.6h-3.6M5.5 21v-3.6h3.6"/></svg>
+          Reiniciar todo</button>
+      </section>
+
+      <section class="seccion">
+        <h2>Vista</h2>
+        <div class="rejilla2">
+          <button id="b-encuadrar" class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Encuadrar</button>
+          <button id="b-etiquetas" class="btn puesto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linejoin="round"><path d="M3.5 12.5l9-9h8v8l-9 9z"/>
+              <circle cx="16.5" cy="7.5" r="1.3" fill="currentColor"/></svg>
+            <span id="etq-txt">Etiquetas</span></button>
+        </div>
+      </section>
+
+      <section class="seccion">
+        <h2>Exportar lo que ves</h2>
+        <button id="b-3mf" class="btn acento">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/>
+            <path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 20h16"/></svg>Descargar 3MF</button>
+        <div class="rejilla2" style="margin-top:7px">
+          <button id="b-obj" class="btn">OBJ</button>
+          <button id="b-stl" class="btn">STL</button>
+        </div>
+        <button id="b-json" class="btn" style="margin-top:7px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+            stroke-linejoin="round"><path d="M6.5 3h7l4.5 4.5V21h-11.5z"/><path d="M13.5 3v4.5H18"/></svg>
+          Estado (JSON)</button>
+      </section>
+
+      <section class="seccion"><h2>Piezas</h2></section>
+      <div id="lista"></div>
+    </div>
+  </aside>
+
+  <main id="vista">
+    <canvas id="cv"></canvas>
+    <div id="etiquetas"></div>
+    <div id="ajuda">
+      arrastrar <kbd>girar</kbd> · rueda <kbd>zoom</kbd><br>
+      botón derecho <kbd>mover vista</kbd><br>
+      clic <kbd>seleccionar</kbd> · <kbd>Esc</kbd> soltar<br>
+      <kbd>flechas</kbd> mover 1 mm · <kbd>Supr</kbd> borrar · <kbd>F</kbd> encuadrar
+    </div>
+    <div id="hud">…</div>
+    <div id="fallo"></div>
+  </main>
+</div>
+
+<script>/*@@THREE@@*/</script>
+<script>const DATOS = /*@@DATOS@@*/;</script>
+<script>
+"use strict";
+(function(){
+  const $ = (id) => document.getElementById(id);
+  if (typeof THREE === "undefined") {
+    const f = $("fallo");
+    f.style.display = "grid";
+    f.textContent = "No se pudo cargar la libreria 3D incrustada (THREE). " +
+                    "El archivo esta danado o incompleto.";
+    return;
+  }
+
+  // ---------------------------------------------------------------- estado
+  const GRUPOS = DATOS.grupos;
+  const PREF = (p) => { const g = GRUPOS.find(x => x.p === p); return g ? g.slug : "OTROS"; };
+  const objetos = [];          // {datos, mesh, nombre, visible, borrado, esCopia}
+  let sel = null;              // objeto seleccionado
+  let hover = null;
+  let contadorCopia = 0;
+
+  // ---------------------------------------------------------------- escena
+  const cv = $("cv");
+  // Sin antialias y a densidad 1: en un equipo sin GPU el dibujo lo hace la CPU
+  // y el coste va con los pixeles. Con antialias y densidad 2 se medían 290 ms
+  // por fotograma; asi baja a decenas de milisegundos y sigue viendose bien.
+  const render = new THREE.WebGLRenderer({canvas: cv, antialias: false});
+  render.setPixelRatio(1);
+  // Mapeo tonal ACES: con las piezas en blanco puro (#ffffff) y cuatro luces,
+  // sin esto las caras bien iluminadas se recortan a blanco plano y el objeto
+  // pierde el volumen. Con el mapeo tonal los brillos se comprimen y se sigue
+  // viendo la forma, manteniendo el mismo sistema de luces.
+  render.toneMapping = THREE.ACESFilmicToneMapping;
+  render.toneMappingExposure = 1.05;
+
+  const escena = new THREE.Scene();
+  escena.background = new THREE.Color(0x14171b);
+
+  const camara = new THREE.PerspectiveCamera(42, 1, 5, 8000);
+  const raiz = new THREE.Group();
+  raiz.rotation.x = -Math.PI / 2;      // modelo en Z-arriba -> three en Y-arriba
+  escena.add(raiz);
+
+  // Luces: el mismo esquema de antes (hemisferio + 3 direccionales) con las
+  // intensidades rebajadas a la mitad. El motivo no es solo el albedo blanco: con
+  // el total viejo una cara bien iluminada recibia ~2,5 de luz, y el mapeo tonal
+  // comprime los brillos llevandose el color por delante, o sea que una pieza
+  // pintada de rojo #e0534a se veia rosa. Ahora una cara a plena luz recibe ~1,2:
+  // el blanco sigue leyendose blanco y los colores conservan su saturacion.
+  escena.add(new THREE.HemisphereLight(0xffffff, 0x2b3138, 0.42));
+  const l1 = new THREE.DirectionalLight(0xffffff, 0.70); l1.position.set(500, 800, 600);
+  const l2 = new THREE.DirectionalLight(0xbfd4ff, 0.42); l2.position.set(-600, 350, -450);
+  const l3 = new THREE.DirectionalLight(0xffd9b0, 0.26); l3.position.set(0, -500, 300);
+  escena.add(l1, l2, l3);
+
+  // suelo y rejilla (en el plano del modelo, Z=0)
+  const caja = new THREE.Box3(
+    new THREE.Vector3(DATOS.meta.bbox[0], DATOS.meta.bbox[1], DATOS.meta.bbox[2]),
+    new THREE.Vector3(DATOS.meta.bbox[3], DATOS.meta.bbox[4], DATOS.meta.bbox[5]));
+  const centro = caja.getCenter(new THREE.Vector3());
+  const tam = caja.getSize(new THREE.Vector3());
+
+  // Suelo, base y rejilla, en el plano del modelo (Z-arriba). La base ya no es
+  // una lámina de 1 mm que atraviesa el montaje: es una losa con volumen que lo
+  // sostiene entero. Su cara superior queda justo en el punto más bajo de la
+  // pieza, así que el robot apoya encima y no se hunde. El suelo es la solera
+  // sobre la que se asienta la losa, y la rejilla se dibuja 0,2 mm por encima
+  // para no pelear con el plano.
+  const BASE_CANTO = 12;                 // mm de grueso de la losa
+  const BASE_VUELO = 20;                 // mm de vuelo alrededor del montaje
+  const zBajo = caja.min.z;              // punto más bajo de la pieza
+  let rejilla = new THREE.GridHelper(900, 30, 0x39414b, 0x242a32);
+  rejilla.position.z = zBajo - BASE_CANTO + 0.2;
+  const suelo = new THREE.Mesh(
+    new THREE.PlaneGeometry(900, 900),
+    new THREE.MeshStandardMaterial({color: 0x0d0f13, roughness: 1, metalness: 0}));
+  suelo.position.z = zBajo - BASE_CANTO;
+  const base = new THREE.Mesh(
+    new THREE.BoxGeometry(tam.x + 2 * BASE_VUELO, tam.y + 2 * BASE_VUELO, BASE_CANTO),
+    new THREE.MeshStandardMaterial({color: 0x1c212b, roughness: .55, metalness: .15}));
+  base.position.set(centro.x, centro.y, zBajo - BASE_CANTO / 2);
+  raiz.add(suelo, base, rejilla);
+
+  // ---------------------------------------------------------------- mallas
+  // Apariencia por defecto de las piezas. Dos reglas:
+  //  - plástico (y todo lo demás): blanco puro con reflejo tenue, ni espejo ni
+  //    cromo, que es la estética limpia y minimalista que se pidió;
+  //  - metal: los propios datos de la pieza lo dicen (metal >= 0,5). Estas van
+  //    en gris, un poco más gris que el blanco, y con bastante más reflejo, para
+  //    que la estructura, los soportes, los ejes, el engranaje central y las
+  //    cadenas se lean como metal en vez de como plástico blanco.
+  const BLANCO = "#ffffff";
+  const RUGOSIDAD = 0.65;   // reflectividad difusa: se ve la luz sin brillos duros
+  const METAL = 0.1;        // metálico muy bajo: nada de aspecto cromado
+  // Metalidad 0,72 y no 0,9: un metal puro solo devuelve entorno, y en el tema
+  // oscuro el entorno es oscuro, así que la estructura se quedaba casi negra. Con
+  // algo de componente difusa se lee gris en los dos temas y sigue reflejando.
+  const GRIS_METAL = "#adb3bd";
+  const RUG_METAL = 0.26;
+  const METAL_METAL = 0.72;
+  function esMetal(d) { return (d.metal || 0) >= 0.5; }
+  function apariencia(d) {
+    return esMetal(d)
+      ? {color: GRIS_METAL, rug: RUG_METAL, metal: METAL_METAL}
+      : {color: BLANCO, rug: RUGOSIDAD, metal: METAL};
+  }
+  let ultimoColor = BLANCO;
+
+  // ------------------------------------------------ apariencia por tema
+  // En claro el lienzo 3D también se pone blanco puro, y la estructura (la losa)
+  // queda un poco más gris que el fondo y con más reflejo. El entorno es lo que
+  // da esos reflejos: un material pulido no devuelve luz de las lámparas, devuelve
+  // su entorno, y sin entorno un metal se vería negro.
+  const APARIENCIA = {
+    oscuro: {fondo: 0x14171b, suelo: 0x0d0f13, base: 0x1b202a,
+             linea1: 0x39414b, linea2: 0x242a32,
+             rugSuelo: 1.00, rugBase: 0.70, metalBase: 0.05, envBase: 0.35, piezas: 0.70},
+    claro:  {fondo: 0xffffff, suelo: 0xdfe3e9, base: 0xa9b0ba,
+             linea1: 0xa8b1bd, linea2: 0xccd1d9,
+             rugSuelo: 0.50, rugBase: 0.30, metalBase: 0.10, envBase: 0.55, piezas: 0.55}
+  };
+
+  // ---- entorno de estudio (los reflejos) ---------------------------------
+  // Se fabrica un entorno diminuto —una esfera con degradado de cielo a suelo y
+  // dos paneles claros a modo de softbox— y se pasa por PMREM, que es lo que
+  // convierte un panorama en los niveles de desenfoque que pide cada rugosidad.
+  // Se calcula una vez por tema y no añade ni una llamada de dibujo: es textura.
+  const pmrem = new THREE.PMREMGenerator(render);
+  const entornos = {};
+  function esferaDegradada(arriba, abajo, radio) {
+    const g = new THREE.SphereGeometry(radio, 24, 16);
+    const p = g.attributes.position, n = p.count;
+    const col = new Float32Array(n * 3);
+    const cA = new THREE.Color(arriba), cB = new THREE.Color(abajo), c = new THREE.Color();
+    for (let i = 0; i < n; i++) {
+      const t = Math.min(1, Math.max(0, p.getY(i) / radio * 0.5 + 0.5));
+      c.copy(cB).lerp(cA, t);
+      col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+    }
+    g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    return g;
+  }
+  function escenaEntorno(claro) {
+    const esc = new THREE.Scene();
+    esc.add(new THREE.Mesh(
+      esferaDegradada(claro ? 0xffffff : 0x9faab8, claro ? 0xb8bec7 : 0x20262e, 120),
+      new THREE.MeshBasicMaterial({vertexColors: true, side: THREE.BackSide})));
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(90, 90, 6),
+      new THREE.MeshBasicMaterial({color: claro ? 0xffffff : 0xeaf1fb}));
+    panel.position.set(-30, 70, 45); panel.rotation.x = -0.6;
+    const panel2 = panel.clone();
+    panel2.position.set(70, 25, -55); panel2.rotation.set(0.7, 0.4, 0);
+    esc.add(panel, panel2);
+    return esc;
+  }
+  function limpiarEntorno(esc) {
+    esc.traverse((o) => {
+      if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); }
+    });
+  }
+  function entornoDe(tema) {
+    if (entornos[tema]) return entornos[tema];
+    const esc = escenaEntorno(tema === "claro");
+    const textura = pmrem.fromScene(esc, 0.02).texture;
+    limpiarEntorno(esc);
+    entornos[tema] = textura;
+    return textura;
+  }
+  // Los colores de la rejilla viven en el buffer de vértices (i === centro usa
+  // el color 1 y el resto el color 2), así que se reescriben en el sitio.
+  const REJILLA_DIV = 30, REJILLA_CENTRO = REJILLA_DIV / 2;
+  function coloresRejilla(c1, c2) {
+    const at = rejilla.geometry.attributes.color;
+    const a = new THREE.Color(c1), b = new THREE.Color(c2);
+    for (let v = 0; v < at.count; v++) {
+      const c = (Math.floor(v / 4) === REJILLA_CENTRO) ? a : b;
+      at.setXYZ(v, c.r, c.g, c.b);
+    }
+    at.needsUpdate = true;
+  }
+  function aplicarTemaEscena(tema) {
+    const t = APARIENCIA[tema] || APARIENCIA.oscuro;
+    escena.background.setHex(t.fondo);
+    escena.environment = entornoDe(tema);
+    suelo.material.color.setHex(t.suelo);
+    suelo.material.roughness = t.rugSuelo;
+    suelo.material.envMapIntensity = t.piezas * 0.8;
+    base.material.color.setHex(t.base);
+    base.material.roughness = t.rugBase;
+    base.material.metalness = t.metalBase;
+    base.material.envMapIntensity = t.envBase;
+    coloresRejilla(t.linea1, t.linea2);
+    objetos.forEach((o) => {
+      o.mesh.material.envMapIntensity = esMetal(o.datos) ? t.piezas * 1.3 : t.piezas;
+    });
+  }
+
+  function crearObjeto(datos, nombre, esCopia) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(datos.v), 3));
+    // Ojo: pasar un array tipado a setIndex() NO lo envuelve en BufferAttribute
+    // (three solo lo envuelve si es un Array normal) y el render revienta con
+    // "onUploadCallback is not a function". Por eso se construye el atributo a mano.
+    const nv = datos.v.length / 3;
+    geo.setIndex(nv > 65535
+      ? new THREE.Uint32BufferAttribute(datos.t, 1)
+      : new THREE.Uint16BufferAttribute(datos.t, 1));
+    geo.translate(-datos.k[0], -datos.k[1], -datos.k[2]);   // centrada: girar es natural
+    geo.computeVertexNormals();
+    geo.computeBoundingSphere();
+
+    const ap = apariencia(datos);
+    const mat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(ap.color),
+      metalness: ap.metal, roughness: ap.rug,
+      transparent: datos.a < 1, opacity: datos.a,
+      side: THREE.DoubleSide, emissive: new THREE.Color(0x000000)
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(datos.k[0], datos.k[1], datos.k[2]);
+    mesh.userData.objeto = null;
+    // color  = el que se ve ahora (editable desde el selector)
+    // color0 = el del material original, para poder recuperarlo
+    const o = {datos, mesh, nombre, visible: true, borrado: false, esCopia: !!esCopia,
+               color: ap.color, color0: datos.c, alpha: datos.a,
+               pos0: datos.k.slice(), rot0: [0, 0, 0]};
+    mesh.userData.objeto = o;
+    raiz.add(mesh);
+    objetos.push(o);
+    return o;
+  }
+
+  DATOS.partes.forEach((p) => crearObjeto(p, p.n, false));
+
+  // ---------------------------------------------------------------- dibujo
+  // Dibujo BAJO DEMANDA: antes se redibujaba sin parar aunque nada cambiase
+  // (290 ms por fotograma tirados a la basura). Ahora cada cambio pide un
+  // fotograma y, si ya hay uno pedido, no se encola otro. En reposo la
+  // herramienta no consume CPU.
+  let fallos = 0, pedido = false;
+  function dibujar() {
+    pedido = false;
+    try {
+      medida();
+      raiz.updateMatrixWorld();
+      // La camara se actualiza AQUI: render.render() la actualiza por dentro, pero
+      // las etiquetas se proyectan antes con matrixWorldInverse, y esa matriz solo
+      // se refresca en un render. Sin esto las etiquetas se colocaban con la
+      // camara del fotograma anterior: tras el encuadre de arranque quedaban todas
+      // apiladas en una esquina hasta el siguiente fotograma.
+      camara.updateMatrixWorld();
+      camara.matrixWorldInverse.copy(camara.matrixWorld).invert();
+      pintarEtiquetas();
+      render.render(escena, camara);
+    } catch (err) {
+      fallos++;
+      if (fallos === 1) {
+        console.error("fallo al dibujar:", err);
+        const f = $("fallo");
+        f.style.display = "grid";
+        f.textContent = "Fallo al dibujar: " + err.message;
+      }
+    }
+  }
+  function repintar() {
+    if (pedido) return;
+    pedido = true;
+    requestAnimationFrame(dibujar);
+  }
+
+  // ---------------------------------------------------------------- cámara
+  const vista = {theta: 0.85, phi: 1.15, dist: Math.max(tam.length() * 1.5, 500),
+                 target: new THREE.Vector3(0, 0, 0)};
+
+  // Encuadre real. Dos decisiones que importan:
+  //
+  // 1. Se encuadra por los VERTICES y no por las 8 esquinas de la caja envolvente.
+  //    Esta pieza tiene forma de L (un cable largo y fino que sale por un lado) y su
+  //    caja contiene mucho aire, asi que encuadrar por la caja dejaba el modelo al
+  //    66% del ancho y descentrado.
+  // 2. Se mide y se corrige varias veces EN NDC, porque la proyeccion no es lineal:
+  //    un vertice mas cerca de la camara cae mas lejos en pantalla, asi que repartir
+  //    la distancia en funcion de medidas tomadas en el plano del objetivo deja el
+  //    modelo descuadrado (se salia por la derecha).
+  //
+  // MARGEN = aire alrededor; LLENA = hueco que debe ocupar la silueta (2 / MARGEN).
+  const MARGEN = 1.12, LLENA = 2 / MARGEN;
+  function encuadrar(lista) {
+    const act = (lista || objetos).filter((o) => !o.borrado && o.visible);
+    if (!act.length) return;
+    raiz.updateMatrixWorld();
+    let total = base.geometry.attributes.position.count;   // la losa tambien encuadra
+    act.forEach((o) => { total += o.mesh.geometry.attributes.position.count; });
+    const pts = new Float64Array(total * 3);
+    const v = new THREE.Vector3();
+    const caja = new THREE.Box3();
+    let k = 0;
+    const sumar = (malla) => {
+      malla.updateMatrix();
+      const p = malla.geometry.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        v.fromBufferAttribute(p, i).applyMatrix4(malla.matrix).applyMatrix4(raiz.matrixWorld);
+        pts[k++] = v.x; pts[k++] = v.y; pts[k++] = v.z;
+        caja.expandByPoint(v);
+      }
+    };
+    sumar(base);
+    act.forEach((o) => sumar(o.mesh));   // ojo: act son registros, no mallas
+    vista.target.copy(caja.getCenter(new THREE.Vector3()));
+    // Punto de partida seguro: 1,6 veces la diagonal deja todo por delante de la
+    // camara, que es lo que la iteracion necesita para medir bien.
+    vista.dist = Math.max(caja.getSize(new THREE.Vector3()).length() * 1.6, 60);
+    aplicarCamara();
+    camara.updateMatrixWorld();
+    const derecha = new THREE.Vector3().setFromMatrixColumn(camara.matrix, 0);
+    const arriba = new THREE.Vector3().setFromMatrixColumn(camara.matrix, 1);
+    const fovV = camara.fov * Math.PI / 180;
+    let llenaX = 1, llenaY = 1;
+    for (let paso = 0; paso < 4; paso++) {
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (let i = 0; i < total; i++) {
+        v.set(pts[i * 3], pts[i * 3 + 1], pts[i * 3 + 2]).project(camara);
+        if (v.x < x0) x0 = v.x;
+        if (v.x > x1) x1 = v.x;
+        if (v.y < y0) y0 = v.y;
+        if (v.y > y1) y1 = v.y;
+      }
+      llenaX = x1 - x0;
+      llenaY = y1 - y0;
+      if (paso === 3) break;
+      // Recentra la silueta y ajusta la distancia a lo medido.
+      const lado = Math.tan(fovV / 2) * vista.dist;   // medio alto visible a esa distancia
+      vista.target.addScaledVector(derecha, ((x0 + x1) / 2) * lado * camara.aspect)
+                  .addScaledVector(arriba, ((y0 + y1) / 2) * lado);
+      vista.dist *= Math.max(llenaX / LLENA, llenaY / LLENA);
+      aplicarCamara();
+      camara.updateMatrixWorld();
+    }
+    // El plano cercano no debe cortar nada: si algun vertice queda a menos de 15 mm
+    // de la camara, se aleja lo justo. Pasa al mirar el conjunto casi de canto.
+    let cerca = Infinity;
+    for (let i = 0; i < total; i++) {
+      v.set(pts[i * 3], pts[i * 3 + 1], pts[i * 3 + 2]).applyMatrix4(camara.matrixWorldInverse);
+      if (-v.z < cerca) cerca = -v.z;
+    }
+    if (cerca < 15) { vista.dist += 15 - cerca; aplicarCamara(); }
+    vista.llena = [+llenaX.toFixed(3), +llenaY.toFixed(3)];
+  }
+  function aplicarCamara() {
+    const s = Math.sin(vista.phi);
+    camara.position.set(
+      vista.target.x + vista.dist * s * Math.sin(vista.theta),
+      vista.target.y + vista.dist * Math.cos(vista.phi),
+      vista.target.z + vista.dist * s * Math.cos(vista.theta));
+    camara.lookAt(vista.target);
+    repintar();
+  }
+  aplicarCamara();
+
+  function medida() {
+    const r = cv.getBoundingClientRect();
+    if (cv.width !== Math.round(r.width * render.getPixelRatio()) || r.width < 2) {
+      render.setSize(r.width, r.height, false);
+      camara.aspect = Math.max(r.width, 1) / Math.max(r.height, 1);
+      camara.updateProjectionMatrix();
+    }
+  }
+
+  // ---------------------------------------------------------------- dibujo
+  // Tinte muy suave, y con el color PROPIO de la pieza en vez de un azul fijo: si
+  // se usa azul, una pieza pintada de rojo se ve morada justo mientras esta
+  // seleccionada. La indicacion principal sigue siendo el contorno.
+  function resaltar(o, factor) {
+    o.mesh.material.emissive.copy(o.mesh.material.color).multiplyScalar(factor).addScalar(0.012);
+    o.mesh.material.emissiveIntensity = 1;
+  }
+  function pintarSeleccion() {
+    objetos.forEach((o) => {
+      if (o.borrado) return;
+      if (o === sel) resaltar(o, 0.16);
+      else if (o === hover) resaltar(o, 0.07);
+      else { o.mesh.material.emissive.setHex(0x000000); }
+    });
+    repintar();
+  }
+
+  // ------------------------------------------------ contorno de seleccion
+  // Caja suave alrededor de la pieza elegida: se ve siempre, cuesta 12 lineas
+  // y no depende de la forma del objeto. Va en el marco del modelo (raiz), asi
+  // que hereda la orientacion Z-arriba correcta.
+  const PAD = 3.0;                       // mm de aire alrededor de la pieza
+  const cajaSel = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)),
+    new THREE.LineBasicMaterial({color: 0x7aa2f7, transparent: true, opacity: 0.95}));
+  cajaSel.visible = false;
+  raiz.add(cajaSel);
+
+  function tamLocal(o) {
+    const g = o.mesh.geometry;
+    if (!g.boundingBox) g.computeBoundingBox();
+    return g.boundingBox.getSize(new THREE.Vector3());
+  }
+  function actualizarCaja() {
+    if (!sel || sel.borrado) { cajaSel.visible = false; return; }
+    sel.mesh.updateMatrix();
+    const t = tamLocal(sel);
+    cajaSel.position.copy(sel.mesh.position);
+    cajaSel.quaternion.copy(sel.mesh.quaternion);
+    cajaSel.scale.set(t.x + PAD, t.y + PAD, t.z + PAD);
+    cajaSel.visible = true;
+  }
+
+  // ------------------------------------------------ color por objeto
+  const MUESTRAS = ["#ffffff", "#f1f3f7", "#c9d1dc", "#7aa2f7", "#2f6fed",
+                    "#41b06e", "#d9a62e", "#e0534a", "#8e5bb5", "#2b2f36"];
+  const elMuestras = $("muestras");
+  const botonesMuestra = MUESTRAS.map((hex) => {
+    const b = document.createElement("button");
+    b.className = "muestra";
+    b.style.background = hex;
+    b.title = hex;
+    b.dataset.hex = hex;
+    b.onclick = () => seleccionarColor(hex);
+    elMuestras.appendChild(b);
+    return b;
+  });
+
+  function colorDe(o) { return "#" + o.mesh.material.color.getHexString(); }
+  function ponerColor(o, hex) {
+    o.mesh.material.color.set(hex);        // solo el color base: la iluminacion
+    o.color = colorDe(o);                  // y el reflejo tenue no se tocan
+  }
+  // aplica el color a la seleccion (o a todo el conjunto si se pide)
+  function aplicarColor(hex, aTodo) {
+    ultimoColor = hex;
+    if (aTodo) objetos.forEach((o) => { if (!o.borrado) ponerColor(o, hex); });
+    else if (sel) ponerColor(sel, hex);
+    refrescar();
+  }
+  function seleccionarColor(hex) {
+    ultimoColor = hex;
+    $("picker").value = hex;
+    aplicarColor(hex, false);
+  }
+
+  const elEtiquetas = $("etiquetas");
+  const divEt = DATOS.etiquetas.map((e) => {
+    const d = document.createElement("div");
+    d.className = "et";
+    d.textContent = e[0];
+    d.dataset.x = e[1][0]; d.dataset.y = e[1][1]; d.dataset.z = e[1][2];
+    elEtiquetas.appendChild(d);
+    return d;
+  });
+  let verEtiquetas = true;
+
+  const v3 = new THREE.Vector3();
+  function pintarEtiquetas() {
+    const r = cv.getBoundingClientRect();
+    const puestas = [];
+    divEt.forEach((d) => {
+      if (!verEtiquetas) { d.style.display = "none"; return; }
+      v3.set(+d.dataset.x, +d.dataset.y, +d.dataset.z).applyMatrix4(raiz.matrixWorld);
+      v3.project(camara);
+      if (v3.z > 1 || v3.z < -1) { d.style.display = "none"; return; }
+      d.style.display = "block";
+      const ancho = d.offsetWidth || 120, alto = d.offsetHeight || 20;
+      // El rotulo se dibuja centrado en su punto. Con un encuadre ajustado el ancla
+      // puede quedar fuera del lienzo, y esta capa recorta lo que se sale, asi que se
+      // retiene dentro del borde: pierde el punto exacto pero no la informacion.
+      const MIN = 5;
+      const dentroX = (q) => Math.min(Math.max(q, ancho / 2 + MIN), r.width - ancho / 2 - MIN);
+      const dentroY = (q) => Math.min(Math.max(q, alto / 2 + MIN), r.height - alto / 2 - MIN);
+      const x = r.width > ancho + 2 * MIN ? dentroX((v3.x * 0.5 + 0.5) * r.width) : r.width / 2;
+      let y = r.height > alto + 2 * MIN ? dentroY((-v3.y * 0.5 + 0.5) * r.height) : r.height / 2;
+      // Empuja hacia abajo las etiquetas que se solapan con otra ya colocada:
+      // varias quedan casi en la misma vertical y sin esto se pisaban.
+      for (let g = 0; g < 40; g++) {
+        const choca = puestas.some((p) => Math.abs(p.x - x) < (p.ancho + ancho) / 2 + 4 &&
+                                          Math.abs(p.y - y) < (p.alto + alto) / 2 + 3);
+        if (!choca) break;
+        y = dentroY(y + alto + 3);
+        if (y >= r.height - alto / 2 - MIN) break;   // ya no se puede bajar mas
+      }
+      puestas.push({x, y, ancho, alto});
+      d.style.left = x + "px";
+      d.style.top = y + "px";
+    });
+  }
+
+  const elHud = $("hud");
+  function activos() { return objetos.filter((o) => !o.borrado && o.visible); }
+  function pintarHud() {
+    let tris = 0;
+    activos().forEach((o) => { tris += o.datos.t.length / 3; });
+    if (sel) {
+      const g = sel.mesh.geometry.boundingBox || (sel.mesh.geometry.computeBoundingBox(),
+                sel.mesh.geometry.boundingBox);
+      const s = g.getSize(new THREE.Vector3());
+      elHud.innerHTML = "<b>" + sel.nombre + "</b> &nbsp;·&nbsp; " +
+        s.x.toFixed(1) + " × " + s.y.toFixed(1) + " × " + s.z.toFixed(1) + " mm" +
+        " &nbsp;·&nbsp; pos " + sel.mesh.position.x.toFixed(1) + ", " +
+        sel.mesh.position.y.toFixed(1) + ", " + sel.mesh.position.z.toFixed(1) +
+        " &nbsp;·&nbsp; piezas visibles: <b>" + activos().length + "</b> de " + objetos.length +
+        " &nbsp;·&nbsp; " + tris + " triángulos";
+    } else {
+      elHud.innerHTML = "Sin selección &nbsp;·&nbsp; piezas visibles: <b>" + activos().length +
+        "</b> de " + objetos.length + " &nbsp;·&nbsp; " + tris + " triángulos";
+    }
+  }
+
+
+  // ---------------------------------------------------------------- lista UI
+  const elLista = $("lista");
+  function construirLista() {
+    elLista.innerHTML = "";
+    GRUPOS.forEach((g) => {
+      const suyos = objetos.filter((o) => o.datos.p === g.p);
+      if (!suyos.length) return;
+      const t = document.createElement("div");
+      t.className = "grupo";
+      t.textContent = g.p + " · " + g.slug;
+      elLista.appendChild(t);
+      suyos.forEach((o) => elLista.appendChild(filaPieza(o)));
+    });
+    const otros = objetos.filter((o) => !GRUPOS.some((g) => g.p === o.datos.p));
+    if (otros.length) {
+      const t = document.createElement("div");
+      t.className = "grupo"; t.textContent = "OTROS";
+      elLista.appendChild(t);
+      otros.forEach((o) => elLista.appendChild(filaPieza(o)));
+    }
+  }
+  const ICONO_OJO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.8" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7' +
+    '-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const ICONO_OJO_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M3 3l18 18"/><path d="M10.6 5.2A10 10 0 0112 5c6.4 0 10 7 10 7a17 17 0 ' +
+    '01-3.1 4"/><path d="M6.4 6.6C3.7 8.5 2 12 2 12s3.6 7 10 7a9.8 9.8 0 004.3-1"/></svg>';
+  const ICONO_UNDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M4 10h11a5 5 0 010 10h-6"/><path d="M8 6l-4 4 4 4"/></svg>';
+
+  function filaPieza(o) {
+    const d = document.createElement("div");
+    d.className = "pieza" + (o === sel ? " sel" : "") + (o.borrado ? " borrada" : "");
+    d.title = o.nombre + " · " + o.datos.m;
+    const c = document.createElement("span");
+    c.className = "color"; c.style.background = colorDe(o);
+    const n = document.createElement("span");
+    n.className = "nombre"; n.textContent = o.nombre;
+    const b = document.createElement("button");
+    b.className = "ojo";
+    b.innerHTML = o.borrado ? ICONO_UNDO : (o.visible ? ICONO_OJO : ICONO_OJO_OFF);
+    b.title = o.borrado ? "Restaurar" : (o.visible ? "Ocultar" : "Mostrar");
+    b.onclick = (e) => {
+      e.stopPropagation();
+      if (o.borrado) { o.borrado = false; o.mesh.visible = o.visible; }
+      else o.visible = !o.visible;
+      if (!o.borrado) o.mesh.visible = o.visible;
+      refrescar();
+    };
+    d.onclick = () => seleccionar(o);   // idempotente: un doble clic no suelta la pieza
+    d.append(c, n, b);
+    return d;
+  }
+
+  function refrescar() {
+    objetos.forEach((o) => { o.mesh.visible = !o.borrado && o.visible; });
+    pintarSeleccion();
+    actualizarCaja();
+    construirLista();
+    pintarHud();
+    const hay = !!sel;
+    ["b-isolar", "b-ocultar", "b-borrar", "b-duplicar", "b-centro", "b-giro0",
+     "px", "py", "pz", "rx", "ry", "rz", "picker", "hex", "b-blanco", "b-original"]
+      .forEach((id) => { $(id).disabled = !hay; });
+    $("ocultar-txt").textContent = sel && !sel.visible ? "Mostrar" : "Ocultar";
+    if (sel) {
+      $("px").value = sel.mesh.position.x.toFixed(1);
+      $("py").value = sel.mesh.position.y.toFixed(1);
+      $("pz").value = sel.mesh.position.z.toFixed(1);
+      $("rx").value = (sel.mesh.rotation.x * 180 / Math.PI).toFixed(0);
+      $("ry").value = (sel.mesh.rotation.y * 180 / Math.PI).toFixed(0);
+      $("rz").value = (sel.mesh.rotation.z * 180 / Math.PI).toFixed(0);
+      const col = colorDe(sel);
+      $("picker").value = col;
+      $("hex").value = col.toUpperCase();
+      botonesMuestra.forEach((b) => {
+        b.classList.toggle("activa", b.dataset.hex === col.toLowerCase());
+      });
+    } else {
+      // sin seleccion, los campos se vacian: dejar los numeros de la pieza
+      // anterior seria enganoso (parecen la posicion de algo que no esta elegido)
+      ["px", "py", "pz", "rx", "ry", "rz"].forEach((id) => { $(id).value = ""; });
+      $("picker").value = ultimoColor;
+      $("hex").value = "";
+      botonesMuestra.forEach((b) => b.classList.remove("activa"));
+    }
+  }
+
+  function seleccionar(o) { sel = o; refrescar(); }
+
+  // ---------------------------------------------------------------- puntero
+  let arrastrando = false, movido = 0, modo = "girar", px0 = 0, py0 = 0;
+  let camaraTocada = false;   // el usuario ya movio la camara: no reencuadrar
+  cv.addEventListener("contextmenu", (e) => e.preventDefault());
+  cv.addEventListener("pointerdown", (e) => {
+    try { cv.setPointerCapture(e.pointerId); } catch (err) { /* puntero sintetico */ }
+    arrastrando = true; movido = 0; px0 = e.clientX; py0 = e.clientY;
+    modo = (e.button === 2 || e.shiftKey) ? "mover" : "girar";
+  });
+  cv.addEventListener("pointermove", (e) => {
+    const dx = e.clientX - px0, dy = e.clientY - py0;
+    if (arrastrando) {
+      movido += Math.abs(dx) + Math.abs(dy);
+      if (movido > 4) camaraTocada = true;
+      if (modo === "girar") {
+        vista.theta -= dx * 0.008;
+        vista.phi = Math.max(0.06, Math.min(Math.PI - 0.06, vista.phi - dy * 0.008));
+      } else {
+        const esc = vista.dist * 0.0016;
+        const derecha = new THREE.Vector3().setFromMatrixColumn(camara.matrix, 0);
+        const arriba = new THREE.Vector3().setFromMatrixColumn(camara.matrix, 1);
+        vista.target.addScaledVector(derecha, -dx * esc);
+        vista.target.addScaledVector(arriba, dy * esc);
+      }
+      px0 = e.clientX; py0 = e.clientY;
+      aplicarCamara();
+    } else {
+      const o = piezaEn(e);
+      if (o !== hover) { hover = o; pintarSeleccion();
+        cv.style.cursor = o ? "pointer" : "grab"; }
+    }
+  });
+  cv.addEventListener("pointerup", (e) => {
+    arrastrando = false;
+    if (movido < 5) { const o = piezaEn(e); seleccionar(o); }
+  });
+  cv.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    camaraTocada = true;
+    vista.dist = Math.max(40, Math.min(4000, vista.dist * Math.exp(e.deltaY * 0.0012)));
+    aplicarCamara();
+  }, {passive: false});
+
+  const raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  function piezaEn(e) {
+    const r = cv.getBoundingClientRect();
+    ndc.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+    ndc.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+    raycaster.setFromCamera(ndc, camara);
+    const visibles = objetos.filter((o) => !o.borrado && o.visible).map((o) => o.mesh);
+    const hit = raycaster.intersectObjects(visibles, false)[0];
+    return hit ? hit.object.userData.objeto : null;
+  }
+
+  // ---------------------------------------------------------------- acciones
+  $("b-isolar").onclick = () => {
+    objetos.forEach((o) => { o.visible = (o === sel); });
+    refrescar();
+  };
+  $("b-mostrar").onclick = () => { objetos.forEach((o) => { o.visible = true; }); refrescar(); };
+  $("b-ocultar").onclick = () => { sel.visible = !sel.visible; refrescar(); };
+  $("b-borrar").onclick = () => {
+    sel.borrado = true; sel.mesh.visible = false; sel = null; refrescar();
+  };
+  $("b-duplicar").onclick = () => {
+    contadorCopia++;
+    const d = Object.assign({}, sel.datos);
+    const o = crearObjeto(d, sel.nombre + " (copia " + contadorCopia + ")", true);
+    o.mesh.position.copy(sel.mesh.position);
+    o.mesh.rotation.copy(sel.mesh.rotation);
+    o.mesh.position.x += 0.35 * (sel.mesh.geometry.boundingBox ?
+      sel.mesh.geometry.boundingBox.getSize(new THREE.Vector3()).x : 10);
+    seleccionar(o);
+  };
+  $("b-restaurar").onclick = () => {
+    objetos.forEach((o) => { if (o.borrado) o.borrado = false; });
+    refrescar();
+  };
+  // "Reiniciar todo" devuelve el montaje ORIGINAL: las copias se eliminan de
+  // verdad (no se quedan marcadas como borradas y resucitando luego).
+  $("b-reset").onclick = () => {
+    for (let i = objetos.length - 1; i >= 0; i--) {
+      const o = objetos[i];
+      if (o.esCopia) {
+        raiz.remove(o.mesh);
+        o.mesh.geometry.dispose();
+        o.mesh.material.dispose();
+        objetos.splice(i, 1);
+      } else {
+        o.borrado = false; o.visible = true;
+        o.mesh.position.fromArray(o.pos0);
+        o.mesh.rotation.set(0, 0, 0);
+      }
+    }
+    contadorCopia = 0;
+    sel = null; hover = null; refrescar();
+  };
+  $("b-encuadrar").onclick = () => encuadrar();
+  $("b-etiquetas").onclick = () => {
+    verEtiquetas = !verEtiquetas;
+    $("etq-txt").textContent = "Etiquetas";
+    $("b-etiquetas").classList.toggle("puesto", verEtiquetas);
+  };
+
+  // ---- color: selector, codigo hex, muestras y aplicacion a todo --------
+  $("picker").oninput = () => {
+    const hex = $("picker").value.toLowerCase();
+    $("hex").value = hex.toUpperCase();
+    aplicarColor(hex, false);
+  };
+  $("hex").onchange = () => {
+    const m = /^#?([0-9a-f]{6})$/i.exec($("hex").value.trim());
+    if (!m) { refrescar(); return; }                 // codigo invalido: se restaura
+    const hex = ("#" + m[1]).toLowerCase();
+    $("picker").value = hex;
+    aplicarColor(hex, false);
+  };
+  $("b-blanco").onclick = () => { if (sel) { ultimoColor = BLANCO; aplicarColor(BLANCO, false); } };
+  $("b-original").onclick = () => { if (sel) aplicarColor(sel.color0.toLowerCase(), false); };
+  $("b-todo").onclick = () => {
+    aplicarColor(sel ? colorDe(sel) : ultimoColor, true);
+    $("todo-txt").textContent = "Aplicado a todas";
+    setTimeout(() => { $("todo-txt").textContent = "Aplicar a todas"; }, 1400);
+  };
+
+  // ---- tema claro / oscuro ----------------------------------------------
+  // El tema cambia el panel Y el lienzo 3D: en claro el fondo del render también
+  // se pone blanco puro, la losa pasa a gris claro y todo gana reflejos (el
+  // entorno claro es más brillante). Los colores de las piezas se respetan: el
+  // tema no pinta el modelo, solo cambia la luz y el entorno que recibe.
+  function ponerTema(nombre) {
+    const t = (nombre === "claro") ? "claro" : "oscuro";
+    document.body.dataset.tema = t;
+    try { localStorage.setItem("editor3d-tema", t); } catch (err) { /* file:// */ }
+    aplicarTemaEscena(t);
+    repintar();
+  }
+  $("b-tema").onclick = () => {
+    ponerTema(document.body.dataset.tema === "claro" ? "oscuro" : "claro");
+  };
+  $("b-centro").onclick = () => { sel.mesh.position.fromArray(sel.datos.k); refrescar(); };
+  $("b-giro0").onclick = () => { sel.mesh.rotation.set(0, 0, 0); refrescar(); };
+
+  function aplicarCampo(id, eje, tipo) {
+    $(id).onchange = () => {
+      if (!sel) return;
+      const v = parseFloat($(id).value) || 0;
+      if (tipo === "pos") sel.mesh.position[eje] = v;
+      else sel.mesh.rotation[eje] = v * Math.PI / 180;
+      refrescar();
+    };
+  }
+  aplicarCampo("px", "x", "pos"); aplicarCampo("py", "y", "pos"); aplicarCampo("pz", "z", "pos");
+  aplicarCampo("rx", "x", "rot"); aplicarCampo("ry", "y", "rot"); aplicarCampo("rz", "z", "rot");
+
+  addEventListener("keydown", (e) => {
+    if (e.target.tagName === "INPUT") return;
+    if (e.key === "Escape") { seleccionar(null); return; }
+    if (!sel) return;
+    const paso = e.shiftKey ? 10 : 1;
+    let usado = false;
+    if (e.key === "ArrowLeft")  { sel.mesh.position.x -= paso; usado = true; }
+    if (e.key === "ArrowRight") { sel.mesh.position.x += paso; usado = true; }
+    if (e.key === "ArrowUp")    { sel.mesh.position.z += paso; usado = true; }
+    if (e.key === "ArrowDown")  { sel.mesh.position.z -= paso; usado = true; }
+    if (e.key === "PageUp")     { sel.mesh.position.y += paso; usado = true; }
+    if (e.key === "PageDown")   { sel.mesh.position.y -= paso; usado = true; }
+    if (e.key === "Delete" || e.key === "Backspace") {
+      sel.borrado = true; sel.mesh.visible = false; sel = null; usado = true;
+    }
+    if (usado) { e.preventDefault(); refrescar(); }
+  });
+  addEventListener("keydown", (e) => {
+    if (e.target.tagName === "INPUT") return;
+    if (e.key === "t" || e.key === "T") { $("b-etiquetas").click(); }
+    if (e.key === "i" || e.key === "I") { if (sel) $("b-isolar").click(); }
+    if (e.key === "h" || e.key === "H") { if (sel) $("b-ocultar").click(); }
+    if (e.key === "f" || e.key === "F") { $("b-encuadrar").click(); }
+    if (e.key === "w" || e.key === "W") { if (sel) $("b-blanco").click(); }
+    if (e.key === "c" || e.key === "C") { $("b-tema").click(); }
+  });
+
+  // ---------------------------------------------------------------- exportar
+  function verticesLocales(o) {
+    o.mesh.updateMatrix();
+    const m = o.mesh.matrix;               // sin la rotacion de la raiz: marco del modelo
+    const p = o.mesh.geometry.attributes.position;
+    const salida = new Float64Array(p.count * 3);
+    const v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i).applyMatrix4(m);
+      salida[i * 3] = v.x; salida[i * 3 + 1] = v.y; salida[i * 3 + 2] = v.z;
+    }
+    return salida;
+  }
+  function descargar(nombre, blob, tipo) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([blob], {type: tipo || "application/octet-stream"}));
+    a.download = nombre;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+  }
+
+  function construirOBJ() {
+    const lin = ["# robot modular sobre cable - editado en el editor web",
+                 "# unidades: milimetros", "mtllib robot_modular_editado.mtl"];
+    let base = 1;
+    activos().forEach((o) => {
+      const P = verticesLocales(o), t = o.datos.t;
+      lin.push("", "o " + o.nombre.replace(/[^\w.+-]/g, "_"),
+               "usemtl " + nombreMat(o));
+      for (let i = 0; i < P.length; i += 3)
+        lin.push("v " + P[i].toFixed(4) + " " + P[i + 1].toFixed(4) + " " + P[i + 2].toFixed(4));
+      for (let i = 0; i < t.length; i += 3)
+        lin.push("f " + (t[i] + base) + " " + (t[i + 1] + base) + " " + (t[i + 2] + base));
+      base += P.length / 3;
+    });
+    return lin.join("\n");
+  }
+
+  // El OBJ solo lleva el color a traves de un MTL, asi que el MTL tiene que viajar
+  // con el. El robot_modular.mtl que hay en disco usa los nombres de material
+  // originales, que ya no son los del editor: cada pieza puede llevar su color.
+  // Sin un MTL propio, el OBJ se abriria en gris.
+  function construirMTL() {
+    const lin = ["# materiales del editor web local (un color por pieza)", ""];
+    clavesMaterial().forEach((k) => {
+      const o = activos().find((x) => claveMat(x) === k);
+      const kd = o.color.slice(1).match(/../g).map((h) => (parseInt(h, 16) / 255).toFixed(3));
+      // Ns se deriva de la rugosidad del visor (0 = mate, valores altos = brillante)
+      // y Ks es el reflejo tenue, para que el MTL describa el mismo aspecto suave
+      // que se ve en la pantalla y no un plastico duro.
+      const ns = Math.max(1, Math.round(2 / Math.pow(o.mesh.material.roughness, 2) - 2));
+      lin.push("newmtl " + nombreMat(o),
+               "Kd " + kd.join(" "),
+               "Ka 0.000 0.000 0.000",
+               "Ks 0.120 0.120 0.120",
+               "Ns " + ns,
+               "d " + (o.alpha < 1 ? o.alpha.toFixed(3) : "1.000"),
+               "illum 2", "");
+    });
+    return lin.join("\n");
+  }
+
+  // OBJ y MTL juntos en un ZIP: es la unica forma de que el color no se pierda.
+  function zipOBJ() {
+    return zipGuardado([{nombre: "robot_modular_editado.obj", texto: construirOBJ()},
+                        {nombre: "robot_modular_editado.mtl", texto: construirMTL()}]);
+  }
+  $("b-obj").onclick = () => descargar("robot_modular_editado.zip", zipOBJ(),
+                                        "application/zip");
+
+  function construirSTL() {
+    const lista = activos();
+    let n = 0;
+    lista.forEach((o) => { n += o.datos.t.length / 3; });
+    const buf = new ArrayBuffer(84 + n * 50);
+    const dv = new DataView(buf);
+    const cab = "robot modular editado - editor web - mm";
+    for (let i = 0; i < cab.length && i < 79; i++) dv.setUint8(i, cab.charCodeAt(i));
+    dv.setUint32(80, n, true);
+    let off = 84;
+    lista.forEach((o) => {
+      const P = verticesLocales(o), t = o.datos.t;
+      for (let i = 0; i < t.length; i += 3) {
+        const a = t[i] * 3, b = t[i + 1] * 3, c = t[i + 2] * 3;
+        const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2];
+        const vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
+        let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+        const ln = Math.hypot(nx, ny, nz) || 1;
+        nx /= ln; ny /= ln; nz /= ln;
+        const f = [nx, ny, nz, P[a], P[a + 1], P[a + 2], P[b], P[b + 1], P[b + 2],
+                   P[c], P[c + 1], P[c + 2]];
+        for (let k = 0; k < 12; k++) dv.setFloat32(off + k * 4, f[k], true);
+        dv.setUint16(off + 48, 0, true);
+        off += 50;
+      }
+    });
+    return buf;
+  }
+  $("b-stl").onclick = () => descargar("robot_modular_editado.stl", construirSTL());
+
+  // ---- 3MF: XML dentro de un ZIP (metodo "stored", sin compresion) -------
+  const CRC_TABLA = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(bytes) {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) c = CRC_TABLA[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function zipGuardado(archivos) {          // archivos: [{nombre, texto}]
+    const enc = new TextEncoder();
+    const partes = [], central = [];
+    let offset = 0;
+    archivos.forEach((a) => {
+      const nombre = enc.encode(a.nombre);
+      const datos = (a.texto instanceof Uint8Array) ? a.texto : enc.encode(a.texto);
+      const crc = crc32(datos);
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true);
+      lh.setUint16(6, 0, true); lh.setUint16(8, 0, true);
+      lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true);
+      lh.setUint32(14, crc, true);
+      lh.setUint32(18, datos.length, true); lh.setUint32(22, datos.length, true);
+      lh.setUint16(26, nombre.length, true); lh.setUint16(28, 0, true);
+      partes.push(new Uint8Array(lh.buffer), nombre, datos);
+
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true);
+      ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+      ch.setUint16(8, 0, true); ch.setUint16(10, 0, true);
+      ch.setUint16(12, 0, true); ch.setUint16(14, 0x21, true);
+      ch.setUint32(16, crc, true);
+      ch.setUint32(20, datos.length, true); ch.setUint32(24, datos.length, true);
+      ch.setUint16(28, nombre.length, true); ch.setUint16(30, 0, true);
+      ch.setUint16(32, 0, true); ch.setUint16(34, 0, true);
+      ch.setUint16(36, 0, true); ch.setUint32(38, 0, true);
+      ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), nombre);
+      offset += 30 + nombre.length + datos.length;
+    });
+    const tamCentral = central.reduce((s, x) => s + x.length, 0);
+    const fin = new DataView(new ArrayBuffer(22));
+    fin.setUint32(0, 0x06054b50, true);
+    fin.setUint16(4, 0, true); fin.setUint16(6, 0, true);
+    fin.setUint16(8, archivos.length, true); fin.setUint16(10, archivos.length, true);
+    fin.setUint32(12, tamCentral, true); fin.setUint32(16, offset, true);
+    fin.setUint16(20, 0, true);
+    const todo = partes.concat(central, [new Uint8Array(fin.buffer)]);
+    const total = todo.reduce((s, x) => s + x.length, 0);
+    const salida = new Uint8Array(total);
+    let p = 0;
+    todo.forEach((x) => { salida.set(x, p); p += x.length; });
+    return salida;
+  }
+  const escapar = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                                    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+  // Color 3MF: #RRGGBB, y con alfa #RRGGBBAA solo si la pieza es translucida.
+  const hex2 = (v) => Math.max(0, Math.min(255, Math.round(v)))
+                        .toString(16).toUpperCase().padStart(2, "0");
+  function color3MF(o) {
+    const m = /^#([0-9a-f]{6})$/i.exec(o.color || "");
+    const base = m ? "#" + m[1].toUpperCase() : "#CCCCCC";
+    return o.alpha < 1 ? base + hex2(o.alpha * 255) : base;
+  }
+
+  // Material = color + alfa. El nombre lleva el alfa cuando lo hay: el blanco
+  // opaco y el blanco translucido comparten hex, y con el nombre solo por color
+  // salian dos materiales con el mismo nombre y el archivo dejaba de leerse bien.
+  function nombreMat(o) { return "color_" + color3MF(o).slice(1).toUpperCase(); }
+  const claveMat = (o) => o.color + "|" + o.alpha;
+  function clavesMaterial(lista) {
+    const vistos = [];
+    (lista || activos()).forEach((o) => { const k = claveMat(o); if (vistos.indexOf(k) < 0) vistos.push(k); });
+    return vistos;
+  }
+
+  function construir3MF() {
+    const lista = activos();
+    // Los materiales del 3MF se agrupan POR COLOR y no por material original:
+    // ahora cada pieza puede tener su propio color, asi que si la clave fuese
+    // el material, dos piezas de distinto color compartirian casilla y una de
+    // ellas saldria con el color equivocado.
+    const mats = clavesMaterial(lista);
+    const ejemplar = (k) => lista.find((o) => claveMat(o) === k);
+    const x = ['<?xml version="1.0" encoding="UTF-8"?>',
+      '<model unit="millimeter" xml:lang="es" ' +
+      'xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">',
+      ' <metadata name="Title">robot modular sobre cable (editado)</metadata>',
+      ' <metadata name="Application">editor web local</metadata>',
+      ' <resources>', '  <basematerials id="1">'];
+    mats.forEach((k) => {
+      const o = ejemplar(k);
+      x.push('   <base name="' + escapar(nombreMat(o)) +
+             '" displaycolor="' + color3MF(o) + '"/>');
+    });
+    x.push('  </basematerials>');
+    lista.forEach((o, i) => {
+      const P = verticesLocales(o), t = o.datos.t;
+      x.push('  <object id="' + (2 + i) + '" type="model" name="' + escapar(o.nombre) +
+             '" pid="1" pindex="' + mats.indexOf(claveMat(o)) + '">');
+      x.push('   <mesh><vertices>');
+      for (let k = 0; k < P.length; k += 3)
+        x.push('    <vertex x="' + P[k].toFixed(4) + '" y="' + P[k + 1].toFixed(4) +
+               '" z="' + P[k + 2].toFixed(4) + '"/>');
+      x.push('   </vertices><triangles>');
+      for (let k = 0; k < t.length; k += 3)
+        x.push('    <triangle v1="' + t[k] + '" v2="' + t[k + 1] + '" v3="' + t[k + 2] + '"/>');
+      x.push('   </triangles></mesh>', '  </object>');
+    });
+    x.push(' </resources>', ' <build>');
+    lista.forEach((o, i) => { x.push('  <item objectid="' + (2 + i) + '"/>'); });
+    x.push(' </build>', '</model>');
+
+    const tipos = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n' +
+      ' <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\n' +
+      ' <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>\n' +
+      '</Types>\n';
+    const rels = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n' +
+      ' <Relationship Id="rel0" Target="/3D/3dmodel.model" ' +
+      'Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>\n' +
+      '</Relationships>\n';
+    return {zip: zipGuardado([
+      {nombre: "[Content_Types].xml", texto: tipos},
+      {nombre: "_rels/.rels", texto: rels},
+      {nombre: "3D/3dmodel.model", texto: x.join("\n")}
+    ]), modelo: x.join("\n")};
+  }
+  $("b-3mf").onclick = () => descargar("robot_modular_editado.3mf",
+                                       construir3MF().zip, "model/3mf");
+
+  $("b-json").onclick = () => {
+    const estado = {
+      generado: new Date().toISOString(),
+      unidades: "mm",
+      visibles: activos().length,
+      apariencia: {porDefecto: BLANCO, rugosidad: RUGOSIDAD, metalico: METAL},
+      piezas: objetos.map((o) => ({
+        nombre: o.nombre, material: o.datos.m, grupo: o.datos.p,
+        color: o.color, colorOriginal: o.color0, alfa: o.alpha,
+        visible: o.visible, borrada: o.borrado, copia: o.esCopia,
+        pos: [ +o.mesh.position.x.toFixed(3), +o.mesh.position.y.toFixed(3),
+               +o.mesh.position.z.toFixed(3) ],
+        giro: [ +(o.mesh.rotation.x * 180 / Math.PI).toFixed(2),
+                +(o.mesh.rotation.y * 180 / Math.PI).toFixed(2),
+                +(o.mesh.rotation.z * 180 / Math.PI).toFixed(2) ]
+      }))
+    };
+    descargar("robot_modular_estado.json", JSON.stringify(estado, null, 2), "application/json");
+  };
+
+  // Se expone ANTES de empezar a dibujar: si el primer fotograma falla, la
+  // herramienta sigue siendo inspeccionable desde la consola.
+  window.EDITOR = {
+    objetos, activos, seleccionar, refrescar, verticesLocales, construirLista,
+    camara, vista, aplicarCamara, raiz, escena,
+    estado: () => objetos.map((o) => [o.nombre, o.visible, o.borrado]),
+    obj: construirOBJ, encuadrar, mtl: construirMTL, objZip: zipOBJ,
+    nombresMaterial: () => clavesMaterial().map((k) => nombreMat(activos().find((o) => claveMat(o) === k))),
+    stl: () => new Uint8Array(construirSTL()),
+    m3mf: () => construir3MF().zip,
+    xml3mf: () => construir3MF().modelo,
+    fallos: () => fallos,
+    // apariencia y color (para comprobar el comportamiento desde la consola)
+    colorDe, ponerColor, aplicarColor, ultimoColor: () => ultimoColor,
+    tema: () => document.body.dataset.tema, ponerTema, cajaSel, PAD, tamLocal,
+    sello: () => (document.getElementById("sello") || {}).textContent || "",
+    // apariencia de la escena (para comprobarla desde la consola)
+    escena3d: () => ({fondo: "#" + escena.background.getHexString(),
+      suelo: "#" + suelo.material.color.getHexString(),
+      base: "#" + base.material.color.getHexString(),
+      rugSuelo: +suelo.material.roughness.toFixed(2),
+      rugBase: +base.material.roughness.toFixed(2),
+      metalBase: +base.material.metalness.toFixed(2),
+      entorno: !!escena.environment, cantoBase: BASE_CANTO,
+      baseArriba: +(base.position.z + BASE_CANTO / 2).toFixed(2),
+      baseCentro: +base.position.z.toFixed(2),
+      baseAbajo: +(base.position.z - BASE_CANTO / 2).toFixed(2),
+      sueloZ: +suelo.position.z.toFixed(2),
+      rejillaZ: +rejilla.position.z.toFixed(2)}),
+    metal: (d) => esMetal(d),
+    // coste real de fabricar el entorno de un tema, en ms (no toca la cache)
+    medirEntorno: (tema) => {
+      const esc = escenaEntorno(tema === "claro");
+      const t0 = performance.now();
+      const tex = pmrem.fromScene(esc, 0.02).texture;
+      const ms = +(performance.now() - t0).toFixed(1);
+      tex.dispose(); limpiarEntorno(esc);
+      return {tema, ms};
+    },
+    camaraTocada: () => camaraTocada, medida, aspecto: () => +camara.aspect.toFixed(3),
+    lienzo: () => [cv.clientWidth, cv.clientHeight],
+    material: (nombre) => {
+      const o = objetos.find((x) => x.nombre === nombre);
+      if (!o) return null;
+      return {color: colorDe(o), colorOriginal: o.color0, alfa: o.alpha,
+              rugosidad: o.mesh.material.roughness,
+              metalico: o.mesh.material.metalness,
+              emisivo: "#" + o.mesh.material.emissive.getHexString()};
+    },
+    muestraCaja: () => ({visible: cajaSel.visible,
+      escala: cajaSel.scale.toArray().map((v) => +v.toFixed(2))}),
+    // dibuja ya, sin esperar al siguiente fotograma: util para medir rendimiento
+    dibujarYa: () => { const t = performance.now(); dibujar(); return +(performance.now() - t).toFixed(1); }
+  };
+
+  // ---------------------------------------------------------------- arranque
+  $("info").textContent = DATOS.meta.piezas + " piezas · " + DATOS.meta.tris +
+    " triángulos · cotas " + (caja.max.x - caja.min.x).toFixed(0) + " × " +
+    (caja.max.y - caja.min.y).toFixed(0) + " × " + (caja.max.z - caja.min.z).toFixed(0) + " mm";
+  // Tema guardado de la ultima vez (en file:// localStorage puede no existir)
+  let temaGuardado = "oscuro";
+  try { temaGuardado = localStorage.getItem("editor3d-tema") || "oscuro"; } catch (err) {}
+  ponerTema(temaGuardado);
+  refrescar();
+  // El lienzo NO tiene aqui su tamano definitivo: el panel reserva el hueco de su
+  // barra de scroll y la fuente de la interfaz puede cambiar el layout despues. Un
+  // encuadre calculado con un aspect equivocado deja el modelo mal de tamano, y el
+  // encuadre no se repetia al cambiar el tamano, asi que cada recarga daba un
+  // encuadre distinto. Se encuadra ya y se reajusta en cuanto el layout se asienta;
+  // mientras el usuario no haya tocado la camara, un cambio de tamano reencuadra en
+  // vez de dejar el modelo descentrado.
+  medida();
+  encuadrar();
+  function encuadreFirme() { if (!camaraTocada) { medida(); encuadrar(); } }
+  requestAnimationFrame(() => requestAnimationFrame(encuadreFirme));
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(encuadreFirme).catch(() => {});
+  }
+  addEventListener("resize", () => { medida(); if (camaraTocada) repintar(); else encuadrar(); });
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+ROBOT MODULAR SOBRE CABLE - 4 conjuntos para Tinkercad
+==========================================================================
+
+Tinkercad sube UN archivo por vez y CENTRA cada import en el
+origen. Por eso cada conjunto lleva la posicion exacta a la que
+hay que llevarlo despues de importarlo:
+
+  1) Importar -> Subir el .stl
+  2) Seleccionar la pieza y escribir en 'Position':
+     X / Y = centro de la pieza, Z = base (elevacion)
+
+archivo                    piezas        tamano (mm)     Position X / Y / Z
+--------------------------------------------------------------------------
+T_CONJUNTO_SUPERIOR.stl       23   360.0 x 188.0 x 205.8        0.0      0.0      5.7
+A_MODULE_A_ENGRANAJES.stl      4   100.0 x  78.8 x  53.0        0.0      0.0     82.0
+B_MODULE_B_BREADBOARD.stl     15   100.0 x 110.0 x  45.0        0.0      0.0     47.0
+C_MODULE_C_MOTOR_POWER.stl     7   100.0 x 190.0 x  55.0        0.0      0.0      0.0
+
+Orden recomendado: T (arriba), luego A, B y por ultimo C.
+Si solo quieres editar un modulo, sube ese y listo.
+
+MEJOR OPCION: no uses Tinkercad para esto. Tinkercad solo
+acepta STL/OBJ/SVG, no admite 3MF, e importa cualquier malla
+como UN solo objeto que NO se puede separar (no hay Ungroup
+para una malla importada).
+
+En su lugar abre robot_modular.3mf: un solo archivo que SI
+lleva las 49 piezas como objetos independientes, ya colocados
+y con color. Bambu Studio / PrusaSlicer / Orca / Blender lo
+abren asi y en todos se borra o mueve una pieza suelta.
+
+Alternativa con el STL: robot_modular.stl trae las piezas como
+cascaras SEPARADAS (866 en total, porque cada pieza es union de
+varias primitivas: la cadena sola son ~100 rodillos y placas).
+Cualquier programa con 'separar por partes sueltas' lo
+descompone en un clic: Bambu/Orca 'Split to parts' CONSERVA
+las posiciones, 'Split to objects' lo reacomoda en la cama
+(PrusaSlicer: clic derecho > Split; Blender: Separate by loose
+parts; Meshmixer: Separate Shells).
