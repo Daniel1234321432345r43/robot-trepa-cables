@@ -108,6 +108,10 @@ def main():
     ap.add_argument("--salida", default=os.path.join(AQUI, "editor_web.html"))
     ap.add_argument("--plantilla", default=os.path.join(AQUI, "editor_web_template.html"))
     ap.add_argument("--three", default=os.path.join(AQUI, "vendor", "three-0.149.0.min.js"))
+    # Copia para publicar: la carpeta que Vercel sirve (web/index.html). Se
+    # escribe siempre junto a la salida principal, asi el sitio y el editor
+    # local nunca se desincronizan.
+    ap.add_argument("--sitio", default=os.path.join(AQUI, "web", "index.html"))
     args = ap.parse_args()
 
     for ruta in (args.plantilla, args.three):
@@ -148,6 +152,12 @@ def main():
     with open(args.salida, "w", encoding="utf-8") as fh:
         fh.write(html)
 
+    sitio = os.path.abspath(args.sitio)
+    if os.path.abspath(args.salida) != sitio:
+        os.makedirs(os.path.dirname(sitio), exist_ok=True)
+        with open(sitio, "w", encoding="utf-8") as fh:
+            fh.write(html)
+
     # ---- comprobaciones: no publicar algo roto -------------------------
     problemas = []
     for marca in ("/*@@DATOS@@*/", "/*@@THREE@@*/", "@@SELLO@@"):
@@ -183,6 +193,7 @@ def main():
              if cierres else ""))
     print("  sello de compilacion.... %s" % sello)
     print("  tamano final............ %.0f KB" % kb)
+    print("  sitio para Vercel....... %s" % sitio)
     print("  autocontenido........... %s" % ("si: sin CDN, sin servidor, "
           "funciona abriendo el archivo" if not externos
           else "NO: %s" % externos))

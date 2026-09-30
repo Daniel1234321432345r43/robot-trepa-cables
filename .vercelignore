@@ -1,0 +1,6 @@
+# Solo se publica la carpeta web/ (un único index.html autocontenido).
+# El resto son fuentes, STL y 3MF: suben a GitHub pero no al despliegue.
+*
+!web/
+web/*
+!web/index.html
