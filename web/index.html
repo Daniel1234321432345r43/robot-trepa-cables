@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Editor 3D · 30/09 17:06 · robot sobre cable</title>
+<title>Editor 3D · 30/09 17:09 · robot sobre cable</title>
 <style>
   :root{
     --fondo:#0e1013;
@@ -163,7 +163,7 @@
     color:var(--peligro);background:var(--fondo)}
 </style>
 </head>
-<body>
+<body data-tema="claro">
 <div id="app">
   <aside id="panel">
     <header id="cab">
@@ -175,7 +175,7 @@
         <h1>Editor 3D</h1>
         <p class="sub" id="info">cargando…</p>
       </div>
-      <span class="sello" id="sello" title="Fecha de compilación de este archivo. Si no coincide con la última que te di, estás viendo una copia en caché: recarga con Ctrl+Mayús+R">30/09 17:06</span>
+      <span class="sello" id="sello" title="Fecha de compilación de este archivo. Si no coincide con la última que te di, estás viendo una copia en caché: recarga con Ctrl+Mayús+R">30/09 17:09</span>
       <button id="b-tema" class="btn icono" title="Cambiar tema (claro / oscuro)" aria-label="Cambiar tema">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
           stroke-linecap="round"><path d="M20.5 14.3A8.5 8.5 0 019.7 3.5a8.5 8.5 0 1010.8 10.8z"/></svg>
@@ -1434,9 +1434,12 @@
   $("info").textContent = DATOS.meta.piezas + " piezas · " + DATOS.meta.tris +
     " triángulos · cotas " + (caja.max.x - caja.min.x).toFixed(0) + " × " +
     (caja.max.y - caja.min.y).toFixed(0) + " × " + (caja.max.z - caja.min.z).toFixed(0) + " mm";
-  // Tema guardado de la ultima vez (en file:// localStorage puede no existir)
-  let temaGuardado = "oscuro";
-  try { temaGuardado = localStorage.getItem("editor3d-tema") || "oscuro"; } catch (err) {}
+  // Tema: por defecto CLARO. El <body> ya viene con data-tema="claro" para que
+  // el primer pintado sea el bueno. Solo se respeta el tema guardado si el
+  // visitante habia pulsado antes el boton de tema (en file:// localStorage
+  // puede no existir).
+  let temaGuardado = "claro";
+  try { temaGuardado = localStorage.getItem("editor3d-tema") || "claro"; } catch (err) {}
   ponerTema(temaGuardado);
   refrescar();
   // El lienzo NO tiene aqui su tamano definitivo: el panel reserva el hueco de su
