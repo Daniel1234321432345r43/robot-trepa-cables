@@ -4,7 +4,7 @@ Robot de 4 módulos para trepar por un cable, con ruedas de tracción por
 goma, transmisión por cadenas y dos motores. Todo es **imprimible en 3D** y
 encaja con tornillería M3/M4 y varillas de acero de 5 mm.
 
-![33 piezas · 9.980 triángulos](https://img.shields.io/badge/piezas-33-blue)
+![31 piezas · 9.180 triángulos](https://img.shields.io/badge/piezas-31-blue)
 ![malla estanca](https://img.shields.io/badge/aristas_mal_emparejadas-0-green)
 
 ## Estructura
@@ -13,17 +13,21 @@ encaja con tornillería M3/M4 y varillas de acero de 5 mm.
 |-------|-----------|-----------|
 | **T** | Conjunto superior: cable, 2 ruedas, ejes, engranajes medianos, 4 cadenas | +0 … +121 |
 | **A** | Caja hueca sin tapa (los engranajes medianos asoman por arriba) | 0 … +45 |
-| **B** | Caja hueca + postes de dirección y guías de la estructura | −35 … 0 |
+| **B** | Caja hueca (+ los pasadores que la unen a A y C) | −35 … 0 |
 | **C** | Caja hueca + los dos motores | −90 … −35 |
 
 Los tres módulos son **cuadrados huecos**: una caja vacía por dentro de la que
-solo salen los palos (pasadores de unión, postes de dirección y los ejes de los
-motores). No hay paneles, ni breadboard, ni cables, ni batería: si los quieres,
-se añaden encima.
+solo salen los palos (pasadores de unión y los ejes de los motores). No hay
+paneles, ni breadboard, ni cables, ni batería: si los quieres, se añaden
+encima. Las tres cajas van **abiertas por delante y por detrás** (solo tienen
+suelo, tapa —menos la de arriba— y los dos costados), así que se ve el
+mecanismo a través de ellas. La caja de arriba (A) **se apoya directamente en
+el soporte de los engranajes medianos**, de modo que todo el conjunto de
+engranajes y ruedas queda sostenido por ella.
 
 ## Malla ligera
 
-El modelo tiene **33 piezas y 9.980 triángulos** (antes 49 y 23.476). No se
+El modelo tiene **31 piezas y 9.180 triángulos** (antes 49 y 23.476). No se
 quitó ninguna pieza mecánica para lograrlo: todas las primitivas redondean su
 número de segmentos con la constante global **`DETALLE`** de
 `generar_robot_modular.py`. Bajarla hace que los cilindros sean polígonos más

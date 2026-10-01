@@ -17,7 +17,7 @@ Mecanica (dos ruedas arriba, un engranaje central y dos motores):
     rueda. Cuatro cadenas en total.
   * Chasis = pila de 3 modulos imprimibles en 3D interconectados:
         MODULE A: CAJA HUECA (SIN TAPA)
-        MODULE B: CAJA HUECA + POSTES DE DIRECCION
+        MODULE B: CAJA HUECA
         MODULE C: CAJA HUECA + LOS DOS MOTORES
 
 Salidas:
@@ -350,15 +350,6 @@ PLANO_MOTOR_B = -72.0           # y de la cadena del motor -Y
 MOTOR_X, PINON_Z = 23.0, -70.0  # los DOS motores, abajo, uno por cara
 CADENA_PASO = 12.0              # separacion entre rodillos (mm)
 
-# --- sistema de deslizamiento del soporte de los engranajes medianos ------
-# El soporte baja una lengueta hasta la SEGUNDA caja y alli se traba en un
-# poste de direccion de cabeza redonda: entra deslizando y queda retenido
-# (ojo de cerradura clasico, como el colgador de un cuadro).
-Z_OJO = -24.0                   # centro del ojo de cerradura (en el soporte)
-Z_ALTO_OJO = -6.0               # arriba de la ranura (donde queda el poste)
-RANURA_W = 9.0                  # ancho de la ranura estrecha
-R_OJO = 7.0                     # radio del ojo redondo
-
 MOD_W, MOD_D = 100.0, 70.0      # caja un poco mas ancha que antes (era 90)
 MOD_A_Z, MOD_B_Z, MOD_C_Z = (0.0, 45.0), (-35.0, 0.0), (-90.0, -35.0)
 
@@ -568,8 +559,10 @@ def build_top():
             brg.solid(prim_torus(11.0, 2.5, 24, 10, 'y'),
                       (x, sy * BEAR_Y, WHEEL_Z))
 
-    # El soporte del mediano es LA PIEZA QUE DESLIZA: lleva una lengueta que
-    # baja hasta la segunda caja y alli se traba en su poste de direccion.
+    # El soporte del mediano se APOYA en la caja de arriba (modulo A): una
+    # brida baja desde el soporte hasta el suelo de esa caja, de modo que el
+    # conjunto de engranajes y ruedas queda sostenido por ella. Antes esto se
+    # resolvia con un ojo de cerradura que enganchaba en la SEGUNDA caja.
     bmed = part("SOPORTES_RODAMIENTO_ENGRANAJES_MEDIOS", "metal_dark", g)
     for sy in (-1.0, 1.0):
         bmed.solid(prim_box(30.0, 18.0, 26.0),
@@ -578,14 +571,12 @@ def build_top():
                    (ENGR_MEDIO_X, sy * BEAR_Y, ENGR_MEDIO_Z))
         bmed.solid(prim_torus(11.0, 2.5, 24, 10, 'y'),
                    (ENGR_MEDIO_X, sy * BEAR_Y, ENGR_MEDIO_Z))
-        # lengueta de deslizamiento con el ojo de cerradura
-        _placa_llave(bmed, sy * BEAR_Y, -14.0, 14.0, Z_OJO - 10.0,
-                     ENGR_MEDIO_Z - 13.0, 9.0, RANURA_W,
-                     ENGR_MEDIO_X, Z_ALTO_OJO, Z_OJO, R_OJO)
+        # brida que baja del soporte al suelo de la caja del modulo A
+        bmed.solid(prim_box(24.0, 16.0, 26.0),
+                   (ENGR_MEDIO_X, sy * 41.0, ENGR_MEDIO_Z))
 
     # --- estructura IMPRESA EN 3D (filamento tipo madera), ya no metal: dos
-    # bancadas con travesanos, montantes y PATAS que bajan deslizando hasta
-    # la segunda caja -----------------------------------------------------
+    # bancadas con travesanos y montantes; sin patas que bajen a las cajas ---
     frame = part("ESTRUCTURA_IMPRESA_MADERA", "wood_pla", g)
     for sy in (-1.0, 1.0):
         frame.solid(prim_box(2.0 * VANO + 40.0, 6.0, 10.0),
@@ -595,9 +586,6 @@ def build_top():
         for sx in (-1.0, 1.0):
             frame.solid(prim_box(8.0, 6.0, 48.0),
                         (sx * 40.0, sy * BEAR_Y, ENGR_MEDIO_Z + 24.0))
-            # pata que baja deslizando hasta la segunda caja
-            frame.solid(prim_box(8.0, 6.0, 26.0),
-                        (sx * 40.0, sy * BEAR_Y, -4.0))
         for x in RUEDA_XS:
             frame.solid(prim_box(38.0, 4.0, 20.0), (x, sy * BEAR_Y, 70.0))
 
@@ -637,59 +625,14 @@ def build_top():
 # --------------------------------------------------------------------------
 #  MODULOS IMPRIMIBLES
 # --------------------------------------------------------------------------
-def _placa_llave(p, y, x0, x1, z0, z1, gro, ranura_w, cx, z_alto, z_ojo, r):
-    """Placa vertical (normal Y) con un OJO DE CERRADURA.
-
-    Deja una ranura estrecha vertical (ancho `ranura_w`) desde z_alto hasta el
-    ojo y un agujero redondo (radio r) centrado en (cx, z_ojo). Asi una
-    lengueta con cabeza redonda entra deslizando, se traba abajo y queda
-    retenida: el poste no puede volver a salir hacia arriba.
-    """
-    xs = sorted({x0, x1, cx - ranura_w / 2.0, cx + ranura_w / 2.0,
-                 cx - r, cx + r})
-    zs = sorted({z0, z1, z_alto, z_ojo - r, z_ojo + r})
-    for a, b in zip(xs, xs[1:]):
-        for c, d in zip(zs, zs[1:]):
-            mx, mz = (a + b) / 2.0, (c + d) / 2.0
-            en_ranura = (abs(mx - cx) <= ranura_w / 2.0
-                         and z_ojo <= mz <= z_alto)
-            en_ojo = math.hypot(mx - cx, mz - z_ojo) <= r
-            if en_ranura or en_ojo:
-                continue
-            p.solid(prim_box(b - a, gro, d - c), (mx, y, mz))
-
-
-def _guia_deslizante(p, x, y, z_c, largo, alto, pared=3.0, fondo=4.0):
-    """Bloque con una ranura en U (abierta hacia arriba) para que algo entre
-    deslizando: dos paredes laterales + fondo. El hueco util es
-    `largo - 2*pared` de ancho."""
-    for sx in (-1.0, 1.0):
-        p.solid(prim_box(pared, 10.0, alto),
-                (x + sx * (largo / 2.0 - pared / 2.0), y, z_c))
-    p.solid(prim_box(largo, 10.0, fondo),
-            (x, y, z_c - alto / 2.0 + fondo / 2.0))
-
-
-def _tramos_pared(huecos):
-    """Trocea una pared de -MOD_W/2 a +MOD_W/2 saltandose los huecos."""
-    tramos, actual = [], -MOD_W / 2.0
-    for cx, ancho in sorted(huecos):
-        if cx - ancho / 2.0 > actual:
-            tramos.append((actual, cx - ancho / 2.0))
-        actual = max(actual, cx + ancho / 2.0)
-    if actual < MOD_W / 2.0:
-        tramos.append((actual, MOD_W / 2.0))
-    return tramos
-
-
-def caja_hueca(name, mat, label, z_top, z_bot, group, huecos=(),
-               huecos_frente=(), techo=True):
-    """CUADRADO HUECO: suelo + cuatro paredes finas + tapa opcional.
+def caja_hueca(name, mat, label, z_top, z_bot, group, techo=True):
+    """CUADRADO HUECO: suelo + los dos costados + tapa opcional.
 
     Es la version sencilla de los modulos: una caja vacia por dentro, sin
-    paneles, componentes ni cables. `huecos` = lista de (x, ancho) que se
-    restan de la pared de atras y `huecos_frente` de la de delante: por ahi
-    salen los ejes. `techo=False` deja la caja abierta por arriba.
+    paneles, componentes ni cables. Solo se levantan los DOS COSTADOS (las
+    paredes en X): las caras de delante y de atras van abiertas, de modo que
+    se ve el mecanismo a traves de la caja. `techo=False` la deja abierta
+    tambien por arriba.
     """
     h = z_top - z_bot
     mid = (z_top + z_bot) / 2.0
@@ -697,10 +640,6 @@ def caja_hueca(name, mat, label, z_top, z_bot, group, huecos=(),
     p.solid(prim_box(MOD_W, MOD_D, 4.0), (0.0, 0.0, z_bot + 2.0))     # suelo
     if techo:
         p.solid(prim_box(MOD_W, MOD_D, 4.0), (0.0, 0.0, z_top - 2.0))
-    for yy, lista in ((-MOD_D / 2.0 + 2.0, huecos),
-                      (MOD_D / 2.0 - 2.0, huecos_frente)):
-        for a, b in _tramos_pared(lista):
-            p.solid(prim_box(b - a, 4.0, h), ((a + b) / 2.0, yy, mid))
     for sx in (-1.0, 1.0):                                           # costados
         p.solid(prim_box(4.0, MOD_D, h), (sx * (MOD_W / 2.0 - 2.0), 0.0, mid))
     return p
@@ -718,39 +657,21 @@ def module_pins(group, z):
 
 def build_modules():
     gA = "MODULE A: CAJA HUECA (SIN TAPA)"
-    gB = "MODULE B: CAJA HUECA + POSTES"
+    gB = "MODULE B: CAJA HUECA"
     gC = "MODULE C: CAJA HUECA + 2 MOTORES"
-    # Los TRES modulos son ahora CUADRADOS HUECOS: una caja vacia por dentro
-    # con solo los palos que salen de ella. Desaparecen los paneles, la
-    # breadboard, los jumpers, los componentes y la bateria.
+    # Los TRES modulos son CUADRADOS HUECOS: una caja vacia por dentro con
+    # solo los palos que salen de ella. Ademas se quita del todo el mecanismo
+    # de enganche (postes de direccion y guias en U): la caja de arriba se une
+    # a los engranajes y a las ruedas por su propio suelo (ver build_top).
     caja_hueca("MODULE_A_CARCASA", "plastic_white",
                "MODULE A: CAJA HUECA (SIN TAPA)",
                MOD_A_Z[1], MOD_A_Z[0], gA, techo=False)     # abierta arriba
     caja_hueca("MODULE_B_CARCASA", "plastic_white",
-               "MODULE B: CAJA HUECA + POSTES",
+               "MODULE B: CAJA HUECA",
                MOD_B_Z[1], MOD_B_Z[0], gB)
-
-    # --- palos de direccion (cabeza redonda) en los que se TRABA deslizando
-    # el soporte de los engranajes medianos -------------------------------
-    posts = part("MODULE_B_POSTES_DIRECCION", "metal_steel", gB)
-    for sy in (-1.0, 1.0):
-        posts.solid(prim_box(20.0, 26.0, 8.0), (0.0, sy * 42.0, -3.0))
-        posts.solid(prim_cylinder(3.2, 14.0, 16, 'y'),
-                    (0.0, sy * 47.0, Z_ALTO_OJO))
-        posts.solid(prim_cylinder(6.2, 4.0, 20, 'y'),
-                    (0.0, sy * 53.0, Z_ALTO_OJO))
-
-    # --- guias en U donde ENCAJAN deslizando las patas de la estructura
-    # impresa (madera 3D) -------------------------------------------------
-    guias = part("MODULE_B_GUIAS_ESTRUCTURA", "plastic_white", gB)
-    for sx in (-1.0, 1.0):
-        for sy in (-1.0, 1.0):
-            _guia_deslizante(guias, sx * 40.0, sy * BEAR_Y, -8.0, 16.0, 20.0)
-
     caja_hueca("MODULE_C_CARCASA", "plastic_white",
                "MODULE C: CAJA HUECA + 2 MOTORES",
-               MOD_C_Z[1], MOD_C_Z[0], gC,
-               huecos=((MOTOR_X, 14.0),), huecos_frente=((-MOTOR_X, 14.0),))
+               MOD_C_Z[1], MOD_C_Z[0], gC)
     # DOS motores, cada uno saca su PALO (el eje) por su costado hasta el
     # pinon de su cadena: es la unica pieza de dentro que se conserva.
     for x, signo, lado in ((-MOTOR_X, 1.0, "A"), (MOTOR_X, -1.0, "B")):
@@ -941,7 +862,7 @@ def write_3mf(path):
 GROUP_META = {
     TOP_GROUP: ("T", "CONJUNTO_SUPERIOR"),
     "MODULE A: CAJA HUECA (SIN TAPA)": ("A", "MODULE_A_CAJA"),
-    "MODULE B: CAJA HUECA + POSTES": ("B", "MODULE_B_CAJA"),
+    "MODULE B: CAJA HUECA": ("B", "MODULE_B_CAJA"),
     "MODULE C: CAJA HUECA + 2 MOTORES": ("C", "MODULE_C_CAJA"),
     # solo aparece si se vuelve a activar CON_TENSOR_INFERIOR
     "TENSOR DE CABLE (RODILLO + RESORTE)": ("X", "TENSOR_CABLE"),
@@ -1046,7 +967,7 @@ LABELS = [
     ("2 ENGRANAJES MEDIOS (UNO POR CARA, PEGADOS A LA CAJA)", (0.0, 0.0, 30.0)),
     ("BARRA QUE UNE LOS 2 EJES MEDIANOS", (0.0, 22.0, ENGR_MEDIO_Z + 8.0)),
     ("MODULE A: CAJA HUECA (SIN TAPA)", (0.0, 45.0, 30.0)),
-    ("MODULE B: CAJA HUECA + POSTES", (0.0, 45.0, -18.0)),
+    ("MODULE B: CAJA HUECA", (0.0, 45.0, -18.0)),
     ("MODULE C: CAJA HUECA + 2 MOTORES", (0.0, 45.0, -62.0)),
     ("DOS RUEDAS DE TRACCION", (-VANO, 0.0, 130.0)),
     ("4 CADENAS: 2 MOTORES -> 2 MEDIANOS -> RUEDAS", (-MOTOR_X, PLANO_MOTOR_A, -20.0)),
