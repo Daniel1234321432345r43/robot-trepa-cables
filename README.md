@@ -4,7 +4,7 @@ Robot de 4 módulos para trepar por un cable, con ruedas de tracción por
 goma, transmisión por cadenas y dos motores. Todo es **imprimible en 3D** y
 encaja con tornillería M3/M4 y varillas de acero de 5 mm.
 
-![30 piezas · 9.228 triángulos](https://img.shields.io/badge/piezas-30-blue)
+![30 piezas · 9.260 triángulos](https://img.shields.io/badge/piezas-30-blue)
 ![malla estanca](https://img.shields.io/badge/aristas_mal_emparejadas-0-green)
 
 ## Estructura
@@ -22,13 +22,15 @@ paneles, ni breadboard, ni cables, ni batería: si los quieres, se añaden
 encima. Cada caja lleva **una sola pared** (la de atrás) además del suelo y los
 dos costados, con la cara de delante abierta: se ve el mecanismo por delante
 y, por detrás, cómo entra el **rodamiento de los engranajes por el agujero** de
-esa pared. Los cuatro soportes de rodamiento van **dentro de la caja** y de
-todos ellos solo asoma un poco de eje, justo donde enganchan las cadenas: ya no
-hay ninguna estructura impresa por fuera de la caja de arriba.
+esa pared. Los dos rodamientos de los engranajes van **subidos hasta el borde
+superior de la caja de arriba**, a ras de la boca, a la vista. Todos los
+soportes van a y=±28 (dentro del canto de la caja) y de ellos solo asoma un poco
+de eje, justo donde enganchan las cadenas: ya no hay ninguna estructura impresa
+por fuera.
 
 ## Malla ligera
 
-El modelo tiene **30 piezas y 9.228 triángulos** (antes 49 y 23.476). No se
+El modelo tiene **30 piezas y 9.260 triángulos** (antes 49 y 23.476). No se
 quitó ninguna pieza mecánica para lograrlo: todas las primitivas redondean su
 número de segmentos con la constante global **`DETALLE`** de
 `generar_robot_modular.py`. Bajarla hace que los cilindros sean polígonos más

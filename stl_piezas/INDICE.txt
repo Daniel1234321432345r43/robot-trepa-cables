@@ -5,9 +5,9 @@ muevelas para componer el robot (o usa robot_modular.obj en Blender,
 que mantiene las piezas como objetos separados ya colocados).
 T=conjunto superior, A/B/C=modulos
 
-A_MODULE_A_CARCASA.stl               tris=96     vol=    68680 mm3   MODULE A: CAJA HUECA (SIN TAPA)
+A_MODULE_A_CARCASA.stl               tris=96     vol=    68080 mm3   MODULE A: CAJA HUECA (SIN TAPA)
 A_PINES_UNION_MODULOS_Z+0.stl        tris=96     vol=     2037 mm3   MODULE A: CAJA HUECA (SIN TAPA)
-B_MODULE_B_CARCASA.stl               tris=108    vol=    89000 mm3   MODULE B: CAJA HUECA
+B_MODULE_B_CARCASA.stl               tris=60     vol=    89600 mm3   MODULE B: CAJA HUECA
 B_PINES_UNION_MODULOS_Z-35.stl       tris=96     vol=     2037 mm3   MODULE B: CAJA HUECA
 C_MODULE_C_CARCASA.stl               tris=144    vol=   107120 mm3   MODULE C: CAJA HUECA + 2 MOTORES
 C_MODULE_C_EJE_MOTOR_A.stl           tris=28     vol=     3765 mm3   MODULE C: CAJA HUECA + 2 MOTORES
@@ -16,10 +16,10 @@ C_MODULE_C_MOTOR_A.stl               tris=12     vol=    36992 mm3   MODULE C: C
 C_MODULE_C_MOTOR_B.stl               tris=12     vol=    36992 mm3   MODULE C: CAJA HUECA + 2 MOTORES
 T_BARRA_UNE_EJES_MEDIANOS.stl        tris=36     vol=     2499 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
 T_CABLE_METAL_TENSADO.stl            tris=36     vol=     9372 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_CADENA_MOTOR_A.stl                 tris=760    vol=     5805 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_CADENA_MOTOR_B.stl                 tris=760    vol=     5805 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_CADENA_RUEDAS_A.stl                tris=1160   vol=     8919 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_CADENA_RUEDAS_B.stl                tris=1160   vol=     8919 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_CADENA_MOTOR_A.stl                 tris=920    vol=     7011 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_CADENA_MOTOR_B.stl                 tris=920    vol=     7011 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_CADENA_RUEDAS_A.stl                tris=1040   vol=     7935 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_CADENA_RUEDAS_B.stl                tris=1040   vol=     7935 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
 T_EJE_ENGRANAJE_MEDIO_A.stl          tris=44     vol=     5055 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
 T_EJE_ENGRANAJE_MEDIO_B.stl          tris=44     vol=     5055 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
 T_EJE_METALICO_RUEDA_DER.stl         tris=100    vol=     5665 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS

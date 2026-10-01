@@ -27,7 +27,7 @@ que ya tienes (`robot_modular.obj`): Tinkercad no lo aprovecha al importar.
 El formato que resuelve el problema es **3MF**: es un ZIP con XML que guarda
 **N objetos**, cada uno con su **nombre**, su **posición** y su **color**.
 Con `--3mf` se genera `robot_modular.3mf`: 30 objetos, 5 materiales, en un
-solo archivo de ~71 KB.
+solo archivo de ~72 KB.
 
 Programas gratuitos que lo abren mostrando las piezas por separado y en su
 sitio:
@@ -55,7 +55,7 @@ IA, que ya está en todas las herramientas de 3D:
 | Descomponedor online | stl-splitter.com, split.actionbox.ca | Suele recortar por volumen, no separar por piezas |
 
 Aviso medido en este modelo: `robot_modular.stl` no tiene 33 cascaras sino
-**535**, porque cada pieza se construye uniendo primitivas (las cuatro cadenas
+**537**, porque cada pieza se construye uniendo primitivas (las cuatro cadenas
 son ~130 rodillos y placas). Sale de un clic — *Split to parts* te las da todas
 en su sitio —, pero es más granularidad de la que necesitas. Para editar "el
 módulo C" o "los dos engranajes medianos", el 3MF (30 objetos) es mucho más

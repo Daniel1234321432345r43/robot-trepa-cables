@@ -336,13 +336,16 @@ BEAR_Y = 28.0
 VANO = 48.0                     # cada rueda va en x = +-VANO (96 mm entre ejes)
 RUEDA_XS = (-VANO, VANO)
 
-# --- DOS engranajes medianos, uno por cara, PEGADOS A LA CAJA --------------
-# El engranaje va bajo, casi tocando la caja (a la altura del borde superior
-# del modulo B). De cada uno salen DOS cadenas, una hacia cada rueda, de modo
-# que cada rueda queda abrazada por dos cadenas, una de cada lado. Los
-# motores, abajo, suben su cadena por la cara de FUERA (y=+-72) hasta ese eje.
+# --- DOS engranajes medianos, uno por cara, ARRIBA DEL TODO ----------------
+# El eje de los engranajes (y con el sus DOS rodamientos) va SUBIDO hasta el
+# borde superior de la caja de arriba (modulo A, abierto por arriba): asi los
+# rodamientos quedan A RAS DEL BORDE, a la vista, y no hundidos dentro de la
+# caja. De cada engranaje salen DOS cadenas, una hacia cada rueda, de modo que
+# cada rueda queda abrazada por dos cadenas, una de cada lado. Los motores,
+# abajo, suben su cadena por la cara de FUERA (y=+-72) hasta ese eje.
 CHAIN_R = 10.5                  # pinones de entrada y de rueda
-ENGR_MEDIO_X, ENGR_MEDIO_Z = 0.0, 8.0    # eje de los engranajes medianos
+ENGR_MEDIO_X, ENGR_MEDIO_Z = 0.0, 32.0   # eje de los engranajes medianos
+# (= borde superior del modulo A: 45 - 13 de alto del soporte)
 ENGR_MEDIO_R = 8.5                       # el "chiquitito"
 ENGR_MEDIO_DIENTES = 10
 PLANO_RUEDAS_A = 17.0           # y de la cadena de ruedas de la cara +Y
@@ -541,7 +544,7 @@ def build_top():
 
     # --- eje por ENGRANAJE MEDIANO: del pinon de la cadena de las ruedas
     # (y=+-17) al pinon de entrada del motor (y=+-72), pasando por el
-    # rodamiento, que ahora va DENTRO de la caja --------------------------
+    # rodamiento, que va ARRIBA, a ras del borde de la caja ---------------
     for signo, lado in ((1.0, "A"), (-1.0, "B")):
         part("EJE_ENGRANAJE_MEDIO_%s" % lado, "metal_steel", g).solid(
             prim_cylinder(SHAFT_R, 68.0, 24, 'y'),
@@ -565,8 +568,9 @@ def build_top():
                       (x, sy * BEAR_Y, WHEEL_Z))
 
     # El soporte del mediano entra por el AGUJERO de la pared de detras de la
-    # caja de arriba: queda dentro, apoyado en su suelo, y solo el eje asoma
-    # por fuera. Ya no hay ninguna estructura impresa por fuera de la caja.
+    # caja de arriba: queda SUBIDO hasta el borde, a ras de la boca de la caja,
+    # y solo el eje asoma por fuera. Ya no hay ninguna estructura impresa por
+    # fuera de la caja.
     bmed = part("SOPORTES_RODAMIENTO_ENGRANAJES_MEDIOS", "metal_dark", g)
     for sy in (-1.0, 1.0):
         bmed.solid(prim_box(30.0, 14.0, 26.0),
@@ -681,8 +685,7 @@ def build_modules():
                huecos_trasera=[(ENGR_MEDIO_X, 30.0, ENGR_MEDIO_Z, 26.0)])
     caja_hueca("MODULE_B_CARCASA", "plastic_white",
                "MODULE B: CAJA HUECA",
-               MOD_B_Z[1], MOD_B_Z[0], gB,
-               huecos_trasera=[(ENGR_MEDIO_X, 30.0, -2.5, 5.0)])
+               MOD_B_Z[1], MOD_B_Z[0], gB)
     caja_hueca("MODULE_C_CARCASA", "plastic_white",
                "MODULE C: CAJA HUECA + 2 MOTORES",
                MOD_C_Z[1], MOD_C_Z[0], gC,
