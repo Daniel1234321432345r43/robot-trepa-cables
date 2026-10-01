@@ -567,6 +567,15 @@ def build_top():
             brg.solid(prim_torus(11.0, 2.5, 24, 10, 'y'),
                       (x, sy * BEAR_Y, WHEEL_Z))
 
+    # --- COLUMNAS que BAJAN de cada rodamiento de rueda hasta el borde de la
+    # caja de arriba, para que las ruedas no queden flotando: dos postes por
+    # rueda, uno por cara (y=+-30, fuera del plano de las cadenas), apoyados en
+    # el borde del modulo A (z=45) y subiendo hasta el soporte del rodamiento.
+    cols = part("COLUMNAS_SOPORTE_RUEDAS", "metal_dark", g)
+    for x in RUEDA_XS:
+        for sy in (-1.0, 1.0):
+            cols.solid(prim_box(12.0, 10.0, 40.0), (x, sy * 30.0, 60.0))
+
     # El soporte del mediano entra por el AGUJERO de la pared de detras de la
     # caja de arriba: queda SUBIDO hasta el borde, a ras de la boca de la caja,
     # y solo el eje asoma por fuera. Ya no hay ninguna estructura impresa por

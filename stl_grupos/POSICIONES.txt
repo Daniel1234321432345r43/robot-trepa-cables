@@ -11,7 +11,7 @@ hay que llevarlo despues de importarlo:
 
 archivo                    piezas        tamano (mm)     Position X / Y / Z
 --------------------------------------------------------------------------
-T_CONJUNTO_SUPERIOR.stl       21   360.0 x 155.0 x 207.2        0.0      0.0      4.0
+T_CONJUNTO_SUPERIOR.stl       22   360.0 x 155.0 x 207.2        0.0      0.0      4.0
 A_MODULE_A_CAJA.stl            2   100.0 x  78.1 x  53.0        0.0      0.0     82.0
 B_MODULE_B_CAJA.stl            2   100.0 x  78.1 x  43.0        0.0      0.0     47.0
 C_MODULE_C_CAJA.stl            5   100.0 x 190.0 x  55.0        0.0      0.0      0.0
@@ -25,12 +25,12 @@ como UN solo objeto que NO se puede separar (no hay Ungroup
 para una malla importada).
 
 En su lugar abre robot_modular.3mf: un solo archivo que SI
-lleva las 30 piezas como objetos independientes, ya colocados
+lleva las 31 piezas como objetos independientes, ya colocados
 y con color. Bambu Studio / PrusaSlicer / Orca / Blender lo
 abren asi y en todos se borra o mueve una pieza suelta.
 
 Alternativa con el STL: robot_modular.stl trae las piezas como
-cascaras SEPARADAS (537 en total, porque cada pieza es union de
+cascaras SEPARADAS (541 en total, porque cada pieza es union de
 varias primitivas: la cadena sola son ~100 rodillos y placas).
 Cualquier programa con 'separar por partes sueltas' lo
 descompone en un clic: Bambu/Orca 'Split to parts' CONSERVA

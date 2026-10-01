@@ -4,14 +4,14 @@ Robot de 4 módulos para trepar por un cable, con ruedas de tracción por
 goma, transmisión por cadenas y dos motores. Todo es **imprimible en 3D** y
 encaja con tornillería M3/M4 y varillas de acero de 5 mm.
 
-![30 piezas · 9.260 triángulos](https://img.shields.io/badge/piezas-30-blue)
+![31 piezas · 9.308 triángulos](https://img.shields.io/badge/piezas-31-blue)
 ![malla estanca](https://img.shields.io/badge/aristas_mal_emparejadas-0-green)
 
 ## Estructura
 
 | Grupo | Contenido | Altura (Z) |
 |-------|-----------|-----------|
-| **T** | Conjunto superior: cable, 2 ruedas, ejes, engranajes medianos, 4 cadenas | +0 … +121 |
+| **T** | Conjunto superior: cable, 2 ruedas, ejes, engranajes medianos, 4 cadenas y las columnas que bajan a la caja | +0 … +121 |
 | **A** | Caja hueca sin tapa (los engranajes medianos asoman por arriba) | 0 … +45 |
 | **B** | Caja hueca (+ los pasadores que la unen a A y C) | −35 … 0 |
 | **C** | Caja hueca + los dos motores | −90 … −35 |
@@ -23,14 +23,15 @@ encima. Cada caja lleva **una sola pared** (la de atrás) además del suelo y lo
 dos costados, con la cara de delante abierta: se ve el mecanismo por delante
 y, por detrás, cómo entra el **rodamiento de los engranajes por el agujero** de
 esa pared. Los dos rodamientos de los engranajes van **subidos hasta el borde
-superior de la caja de arriba**, a ras de la boca, a la vista. Todos los
-soportes van a y=±28 (dentro del canto de la caja) y de ellos solo asoma un poco
-de eje, justo donde enganchan las cadenas: ya no hay ninguna estructura impresa
-por fuera.
+superior de la caja de arriba**, a ras de la boca, a la vista. Los rodamientos
+de las **ruedas** (arriba, fuera de la caja) se sostienen con **columnas** que
+bajan hasta el borde de esa misma caja, así que las ruedas ya no flotan. Todos
+los soportes van a y=±28 y de ellos solo asoma un poco de eje, justo donde
+enganchan las cadenas.
 
 ## Malla ligera
 
-El modelo tiene **30 piezas y 9.260 triángulos** (antes 49 y 23.476). No se
+El modelo tiene **31 piezas y 9.308 triángulos** (antes 49 y 23.476). No se
 quitó ninguna pieza mecánica para lograrlo: todas las primitivas redondean su
 número de segmentos con la constante global **`DETALLE`** de
 `generar_robot_modular.py`. Bajarla hace que los cilindros sean polígonos más

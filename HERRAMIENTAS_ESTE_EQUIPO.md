@@ -24,7 +24,7 @@ Instalado **sin permisos de administrador**: se descargaron los 12 `.deb`
 (40 MB). Nada del sistema se tocó.
 
 Comprobado: abre `robot_modular.obj` — el ensamblaje completo, **38 piezas y
-12.324 triángulos** en aquel momento (ahora son 30 y 9.260) — en 104 ms, con
+12.324 triángulos** en aquel momento (ahora son 31 y 9.308) — en 104 ms, con
 OpenGL 4.5 por software.
 
 - Lanzador: `meshlab` (está en el PATH, vía `~/.local/bin/meshlab`).

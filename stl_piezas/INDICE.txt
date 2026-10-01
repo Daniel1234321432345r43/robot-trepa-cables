@@ -1,4 +1,4 @@
-ROBOT MODULAR SOBRE CABLE - indice de piezas (30)
+ROBOT MODULAR SOBRE CABLE - indice de piezas (31)
 Medidas reales en milimetros. OJO: Tinkercad centra cada import
 en el origen, asi que si cargas varias aparecen superpuestas:
 muevelas para componer el robot (o usa robot_modular.obj en Blender,
@@ -20,6 +20,7 @@ T_CADENA_MOTOR_A.stl                 tris=920    vol=     7011 mm3   SUPERIOR: 2
 T_CADENA_MOTOR_B.stl                 tris=920    vol=     7011 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
 T_CADENA_RUEDAS_A.stl                tris=1040   vol=     7935 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
 T_CADENA_RUEDAS_B.stl                tris=1040   vol=     7935 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_COLUMNAS_SOPORTE_RUEDAS.stl        tris=48     vol=    19200 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
 T_EJE_ENGRANAJE_MEDIO_A.stl          tris=44     vol=     5055 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
 T_EJE_ENGRANAJE_MEDIO_B.stl          tris=44     vol=     5055 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
 T_EJE_METALICO_RUEDA_DER.stl         tris=100    vol=     5665 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
