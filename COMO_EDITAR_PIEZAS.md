@@ -15,7 +15,7 @@ Tres límites reales de Tinkercad, no opiniones:
 | Límite | Consecuencia |
 |---|---|
 | Solo importa **STL, OBJ y SVG**. No admite 3MF, AMF ni STEP. | Aunque generáramos el archivo perfecto con piezas separadas, Tinkercad no lo lee. |
-| Sube **un archivo por vez** y **centra cada importación en el origen**. | 31 piezas = 31 subidas + recolocar a mano. |
+| Sube **un archivo por vez** y **centra cada importación en el origen**. | 30 piezas = 30 subidas + recolocar a mano. |
 | Una malla importada entra como **un único objeto y no se puede desagrupar** (no hay *Ungroup* para mallas importadas). | No puedes borrar ni mover una pieza dentro del STL. La única salida es la técnica de la forma "hueco" (*hole*) para restar material. |
 
 Si además exportas desde Tinkercad en STL, los objetos separados se fusionan;
@@ -26,8 +26,8 @@ que ya tienes (`robot_modular.obj`): Tinkercad no lo aprovecha al importar.
 
 El formato que resuelve el problema es **3MF**: es un ZIP con XML que guarda
 **N objetos**, cada uno con su **nombre**, su **posición** y su **color**.
-Con `--3mf` se genera `robot_modular.3mf`: 31 objetos, 5 materiales, en un
-solo archivo de ~72 KB.
+Con `--3mf` se genera `robot_modular.3mf`: 30 objetos, 5 materiales, en un
+solo archivo de ~71 KB.
 
 Programas gratuitos que lo abren mostrando las piezas por separado y en su
 sitio:
@@ -55,10 +55,10 @@ IA, que ya está en todas las herramientas de 3D:
 | Descomponedor online | stl-splitter.com, split.actionbox.ca | Suele recortar por volumen, no separar por piezas |
 
 Aviso medido en este modelo: `robot_modular.stl` no tiene 33 cascaras sino
-**531**, porque cada pieza se construye uniendo primitivas (las cuatro cadenas
+**535**, porque cada pieza se construye uniendo primitivas (las cuatro cadenas
 son ~130 rodillos y placas). Sale de un clic — *Split to parts* te las da todas
 en su sitio —, pero es más granularidad de la que necesitas. Para editar "el
-módulo C" o "los dos engranajes medianos", el 3MF (31 objetos) es mucho más
+módulo C" o "los dos engranajes medianos", el 3MF (30 objetos) es mucho más
 cómodo.
 
 ## 4. Si insistes en Tinkercad
@@ -71,7 +71,7 @@ Tienes dos caminos:
    resuelto** — para rediseñar de verdad hay opciones gratuitas mejores:
    Fusion 360 (personal), FreeCAD, Onshape (web, gratis para proyectos
    públicos), Blender. Tinkercad brilla para piezas simples, no para
-   ensamblajes mecánicos de 31 piezas.
+   ensamblajes mecánicos de 30 piezas.
 
 ## 5. Utilidad incluida: una carpeta de STLs -> un 3MF
 
@@ -81,7 +81,7 @@ archivo como objeto independiente**, respetando las coordenadas originales.
 
 ```bash
 python3 carpeta_a_3mf.py stl_grupos robot_grupos.3mf      # 4 objetos
-python3 carpeta_a_3mf.py stl_piezas robot_piezas.3mf      # 31 objetos
+python3 carpeta_a_3mf.py stl_piezas robot_piezas.3mf      # 30 objetos
 python3 carpeta_a_3mf.py --comprobar robot_modular.3mf    # validar un .3mf
 ```
 
