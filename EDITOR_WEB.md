@@ -2,7 +2,7 @@
 
 Herramienta de **un solo archivo** para abrir el ensamblaje y **borrar, aislar,
 ocultar, duplicar y recolocar sus piezas** desde el navegador. No instala nada,
-no necesita servidor y **funciona sin conexión**: three.js y las 49 piezas van
+no necesita servidor y **funciona sin conexión**: three.js y las 33 piezas van
 incrustadas dentro del HTML.
 
 ## Cómo abrirlo
@@ -198,10 +198,10 @@ no tocas nada.
   XML válido, `unit="millimeter"`, objetos e items bien referenciados, índices
   de triángulo dentro de rango, y el color de la pieza translúcida con alfa
   (`plastic_clear` → `#C7E0F738`). En el ensamblaje de 38 piezas salía en 884.002
-  bytes; el 3MF equivalente que escribe el generador con las 49 actuales son 194 KB.
+  bytes; el 3MF equivalente que escribe el generador con las 33 actuales son 79 KB.
 - **Interacción** (comprobado otra vez con el rediseño de los dos engranajes
-  medianos): duplicar 49 → 50 objetos, borrar la copia → 49 activos de 50,
-  aislar → 1 de 49, mostrar todo → 49 de 49, y *Reiniciar todo* → vuelve a las 49
+  medianos): duplicar 33 → 34 objetos, borrar la copia → 33 activos de 34,
+  aislar → 1 de 33, mostrar todo → 33 de 33, y *Reiniciar todo* → vuelve a las 33
   originales, en la escena y en la lista. El clic real sobre el lienzo selecciona la pieza correcta
   (`SOPORTES_RODAMIENTO_RUEDA_IZQ`, 36,0 × 117,0 × 30,0 mm, pos `-48, 0, 91.5`),
   sin que un clic cuente como movimiento de cámara.

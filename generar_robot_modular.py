@@ -16,9 +16,9 @@ Mecanica (dos ruedas arriba, un engranaje central y dos motores):
     cadena de rodillos hasta el pinon central) y saca DOS CADENAS, una a cada
     rueda. Cuatro cadenas en total.
   * Chasis = pila de 3 modulos imprimibles en 3D interconectados:
-        MODULE A: CONTROLLER (ARDUINO)
-        MODULE B: BREADBOARD & WIRING
-        MODULE C: DOS MOTORES & POWER (BATT)
+        MODULE A: CAJA HUECA (SIN TAPA)
+        MODULE B: CAJA HUECA + POSTES DE DIRECCION
+        MODULE C: CAJA HUECA + LOS DOS MOTORES
 
 Salidas:
     robot_modular.obj / robot_modular.mtl   mallas + materiales
@@ -46,6 +46,21 @@ import sys
 import zipfile
 
 TAU = math.tau
+
+# --------------------------------------------------------------------------
+#  RESOLUCION GLOBAL  (misma estructura, muchos menos vertices)
+# --------------------------------------------------------------------------
+# Todas las primitivas redondean su numero de segmentos con _seg(). Bajando
+# DETALLE baja el numero de triangulos de TODO el modelo sin cambiar ni una
+# sola medida ni la posicion de ninguna pieza: los cilindros pasan a ser
+# poligonos mas gruesos, las ruedas pierden suavidad y las cadenas llevan
+# menos rodillos. DETALLE = 1.0 es el detalle original.
+DETALLE = 0.45
+
+
+def _seg(n, minimo=3):
+    return max(minimo, int(round(n * DETALLE)))
+
 
 # --------------------------------------------------------------------------
 #  materiales  (nombre: color difuso, alfa, brillo, color especular)
@@ -99,6 +114,7 @@ def _axis_map(verts, axis):
 
 
 def prim_cylinder(r, length, seg=24, axis='z'):
+    seg = _seg(seg, 3)
     h = length / 2.0
     v, f = [], []
     for i in range(seg):
@@ -121,6 +137,7 @@ def prim_cylinder(r, length, seg=24, axis='z'):
 
 
 def prim_annulus(r_out, r_in, length, seg=24, axis='z'):
+    seg = _seg(seg, 3)
     h = length / 2.0
     v, f = [], []
     for r in (r_out, r_in):
@@ -142,6 +159,8 @@ def prim_annulus(r_out, r_in, length, seg=24, axis='z'):
 
 
 def prim_torus(major, minor, mseg=32, nseg=12, axis='z'):
+    mseg = _seg(mseg, 6)
+    nseg = _seg(nseg, 4)
     v, f = [], []
     for i in range(mseg):
         u = TAU * i / mseg
@@ -160,6 +179,7 @@ def prim_torus(major, minor, mseg=32, nseg=12, axis='z'):
 
 def prim_tube_path(points, radius, seg=10):
     """Tubo cerrado a lo largo de una polilinea, con marcos estables."""
+    seg = _seg(seg, 3)
     pts = [tuple(p) for p in points]
     n = len(pts)
     tans = []
@@ -328,7 +348,7 @@ PLANO_RUEDAS_B = -28.0          # y de la cadena de ruedas de la cara -Y
 PLANO_MOTOR_A = 72.0            # y de la cadena del motor +Y
 PLANO_MOTOR_B = -72.0           # y de la cadena del motor -Y
 MOTOR_X, PINON_Z = 23.0, -70.0  # los DOS motores, abajo, uno por cara
-CADENA_PASO = 8.0               # separacion entre rodillos (mm)
+CADENA_PASO = 12.0              # separacion entre rodillos (mm)
 
 # --- sistema de deslizamiento del soporte de los engranajes medianos ------
 # El soporte baja una lengueta hasta la SEGUNDA caja y alli se traba en un
@@ -491,8 +511,8 @@ def rueda_de_traccion(grupo, x):
 
     rubber = part("POLEA_GOMA_TRACCION_%s" % lado, "rubber_black", grupo)
     rubber.solid(prim_annulus(26.0, 22.0, 16.0, 28, 'y'), (x, 0.0, WHEEL_Z))
-    for k in range(48):                      # textura del grip
-        a = TAU * k / 48.0
+    for k in range(16):                      # textura del grip
+        a = TAU * k / 16.0
         rubber.solid(prim_box(4.0, 16.0, 3.0),
                      (x + 27.0 * math.cos(a), 0.0, WHEEL_Z + 27.0 * math.sin(a)),
                      rot_y=math.atan2(-math.sin(a), math.cos(a)),
@@ -581,15 +601,6 @@ def build_top():
         for x in RUEDA_XS:
             frame.solid(prim_box(38.0, 4.0, 20.0), (x, sy * BEAR_Y, 70.0))
 
-    # --- abrazadera sobre el cable, fuera del vano de las ruedas ---------
-    clamp = part("ABRAZADERA_AL_CABLE", "metal_dark", g)
-    for dz in (4.0, -4.0):
-        clamp.solid(prim_box(32.0, 100.0, 8.0), (-110.0, 0.0, CABLE_Z + dz))
-    for sy in (-1.0, 1.0):
-        for sx in (-1.0, 1.0):
-            clamp.solid(prim_cylinder(2.0, 22.0, 12, 'z'),
-                        (-110.0 + sx * 13.0, sy * 40.0, CABLE_Z))
-
     # --- DOS ENGRANAJES MEDIANOS, uno por cara: cada uno es un eje con el
     # pinon chiquitito (el que mueve las ruedas) y el pinon de entrada (el
     # que recibe la cadena del motor) ------------------------------------
@@ -626,22 +637,6 @@ def build_top():
 # --------------------------------------------------------------------------
 #  MODULOS IMPRIMIBLES
 # --------------------------------------------------------------------------
-def _placa_agujereada(p, x0, x1, y0, y1, z, gro, huecos):
-    """Placa horizontal a la que se le restan huecos rectangulares.
-
-    `huecos` = [(x_ini, x_fin, y_ini, y_fin), ...]. Se trocea la placa en una
-    rejilla y solo se emiten las celdas que no caen dentro de un hueco.
-    """
-    xs = sorted({x0, x1} | {h[0] for h in huecos} | {h[1] for h in huecos})
-    ys = sorted({y0, y1} | {h[2] for h in huecos} | {h[3] for h in huecos})
-    for a, b in zip(xs, xs[1:]):
-        for c, d in zip(ys, ys[1:]):
-            cx, cy = (a + b) / 2.0, (c + d) / 2.0
-            if any(h[0] <= cx <= h[1] and h[2] <= cy <= h[3] for h in huecos):
-                continue
-            p.solid(prim_box(b - a, d - c, gro), (cx, cy, z))
-
-
 def _placa_llave(p, y, x0, x1, z0, z1, gro, ranura_w, cx, z_alto, z_ojo, r):
     """Placa vertical (normal Y) con un OJO DE CERRADURA.
 
@@ -675,35 +670,8 @@ def _guia_deslizante(p, x, y, z_c, largo, alto, pared=3.0, fondo=4.0):
             (x, y, z_c - alto / 2.0 + fondo / 2.0))
 
 
-def module_shell(name, mat, label, z_top, z_bot, group, huecos=(),
-                 huecos_techo=(), techo=True):
-    """Caja abierta por delante (+Y) con panel transparente -> interior visible.
-
-    `huecos` = lista de (x, ancho) por los que un eje sale del modulo: la pared
-    trasera se parte en tramos para dejarles paso limpio.
-    `huecos_techo` = lista de (x_ini, x_fin, y_ini, y_fin) que se restan de la
-    tapa superior: por ahi pasa una cadena.
-    `techo=False` = sin tapa arriba: en su lugar se refuerza con un marco
-    perimetral y costillas cruzadas.
-    """
-    h = z_top - z_bot
-    mid = (z_top + z_bot) / 2.0
-    p = part(name, mat, group, label)
-    if not techo:
-        for sy in (-1.0, 1.0):
-            p.solid(prim_box(MOD_W, 6.0, 6.0),
-                    (0.0, sy * (MOD_D / 2.0 - 3.0), z_top - 3.0))
-        for sx in (-1.0, 1.0):
-            p.solid(prim_box(6.0, MOD_D, 6.0),
-                    (sx * (MOD_W / 2.0 - 3.0), 0.0, z_top - 3.0))
-        for cx in (-MOD_W / 6.0, MOD_W / 6.0):
-            p.solid(prim_box(6.0, MOD_D - 8.0, 5.0), (cx, 0.0, z_top - 2.5))
-    elif huecos_techo:
-        _placa_agujereada(p, -MOD_W / 2.0, MOD_W / 2.0, -MOD_D / 2.0,
-                          MOD_D / 2.0, z_top - 2.0, 4.0, huecos_techo)
-    else:
-        p.solid(prim_box(MOD_W, MOD_D, 4.0), (0.0, 0.0, z_top - 2.0))
-    p.solid(prim_box(MOD_W, MOD_D, 4.0), (0.0, 0.0, z_bot + 2.0))
+def _tramos_pared(huecos):
+    """Trocea una pared de -MOD_W/2 a +MOD_W/2 saltandose los huecos."""
     tramos, actual = [], -MOD_W / 2.0
     for cx, ancho in sorted(huecos):
         if cx - ancho / 2.0 > actual:
@@ -711,14 +679,30 @@ def module_shell(name, mat, label, z_top, z_bot, group, huecos=(),
         actual = max(actual, cx + ancho / 2.0)
     if actual < MOD_W / 2.0:
         tramos.append((actual, MOD_W / 2.0))
-    for a, b in tramos:
-        p.solid(prim_box(b - a, 4.0, h), ((a + b) / 2.0, -MOD_D / 2.0 + 2.0, mid))
-    for sx in (-1.0, 1.0):
-        p.solid(prim_box(4.0, MOD_D - 8.0, h),
-                (sx * (MOD_W / 2.0 - 2.0), 0.0, mid))
-    for sx in (-1.0, 1.0):
-        p.solid(prim_box(6.0, 4.0, h),
-                (sx * (MOD_W / 2.0 - 3.0), MOD_D / 2.0, mid))
+    return tramos
+
+
+def caja_hueca(name, mat, label, z_top, z_bot, group, huecos=(),
+               huecos_frente=(), techo=True):
+    """CUADRADO HUECO: suelo + cuatro paredes finas + tapa opcional.
+
+    Es la version sencilla de los modulos: una caja vacia por dentro, sin
+    paneles, componentes ni cables. `huecos` = lista de (x, ancho) que se
+    restan de la pared de atras y `huecos_frente` de la de delante: por ahi
+    salen los ejes. `techo=False` deja la caja abierta por arriba.
+    """
+    h = z_top - z_bot
+    mid = (z_top + z_bot) / 2.0
+    p = part(name, mat, group, label)
+    p.solid(prim_box(MOD_W, MOD_D, 4.0), (0.0, 0.0, z_bot + 2.0))     # suelo
+    if techo:
+        p.solid(prim_box(MOD_W, MOD_D, 4.0), (0.0, 0.0, z_top - 2.0))
+    for yy, lista in ((-MOD_D / 2.0 + 2.0, huecos),
+                      (MOD_D / 2.0 - 2.0, huecos_frente)):
+        for a, b in _tramos_pared(lista):
+            p.solid(prim_box(b - a, 4.0, h), ((a + b) / 2.0, yy, mid))
+    for sx in (-1.0, 1.0):                                           # costados
+        p.solid(prim_box(4.0, MOD_D, h), (sx * (MOD_W / 2.0 - 2.0), 0.0, mid))
     return p
 
 
@@ -733,49 +717,21 @@ def module_pins(group, z):
 
 
 def build_modules():
-    gA = "MODULE A: ENGRANAJES MEDIOS (SIN TAPA)"
-    gB = "MODULE B: BREADBOARD & WIRING"
-    gC = "MODULE C: DOS MOTORES & POWER (BATT)"
-    # La caja de arriba va SIN TAPA: se refuerza con marco + costillas, y en
-    # su interior ya no hay controlador (la barra que une los ejes medianos
-    # es pieza del conjunto superior).
-    module_shell("MODULE_A_CARCASA", "plastic_white",
-                 "MODULE A: 2 ENGRANAJES MEDIOS (SIN TAPA)",
-                 MOD_A_Z[1], MOD_A_Z[0], gA, techo=False)
-    # el panel se parte en dos: por el hueco central pasa el eje de los
-    # engranajes medianos
-    panel_a = part("MODULE_A_PANEL_TRANSPARENTE", "plastic_clear", gA)
-    for a, b in ((-46.0, -8.0), (8.0, 46.0)):
-        panel_a.solid(prim_box(b - a, 2.0, 36.0), ((a + b) / 2.0, 36.0, 23.0))
-    part("MODULE_A_PLACA_LABEL", "label_white", gA).solid(
-        prim_box(70.0, 2.0, 12.0), (0.0, -35.5, 36.0))
+    gA = "MODULE A: CAJA HUECA (SIN TAPA)"
+    gB = "MODULE B: CAJA HUECA + POSTES"
+    gC = "MODULE C: CAJA HUECA + 2 MOTORES"
+    # Los TRES modulos son ahora CUADRADOS HUECOS: una caja vacia por dentro
+    # con solo los palos que salen de ella. Desaparecen los paneles, la
+    # breadboard, los jumpers, los componentes y la bateria.
+    caja_hueca("MODULE_A_CARCASA", "plastic_white",
+               "MODULE A: CAJA HUECA (SIN TAPA)",
+               MOD_A_Z[1], MOD_A_Z[0], gA, techo=False)     # abierta arriba
+    caja_hueca("MODULE_B_CARCASA", "plastic_white",
+               "MODULE B: CAJA HUECA + POSTES",
+               MOD_B_Z[1], MOD_B_Z[0], gB)
 
-    module_shell("MODULE_B_CARCASA", "plastic_white", "MODULE B: BREADBOARD & WIRING",
-                 MOD_B_Z[1], MOD_B_Z[0], gB)
-    part("MODULE_B_PANEL_TRANSPARENTE", "plastic_clear", gB).solid(
-        prim_box(84.0, 2.0, 26.0), (0.0, 36.0, -17.5))
-    bread = part("MODULE_B_BREADBOARD_MINI", "breadboard", gB)
-    bread.solid(prim_box(60.0, 30.0, 8.0), (0.0, -2.0, -15.0))
-    for i in range(11):
-        bread.solid(prim_box(2.0, 26.0, 1.5),
-                    (-25.0 + i * 5.0, -2.0, -10.6))
-    comps = part("MODULE_B_COMPONENTES", "component_dark", gB)
-    for i in range(4):
-        comps.solid(prim_box(8.0, 4.0, 3.0), (-18.0 + i * 12.0, 10.0, -9.5))
-    for i in range(3):
-        comps.solid(prim_cylinder(3.0, 4.0, 12, 'z'), (-20.0 + i * 14.0, -12.0, -9.0))
-    for i in range(7):
-        w = part("MODULE_B_JUMPER_%02d" % i, "wire_yellow" if i % 2 else "wire_blue", gB)
-        w.solid(prim_cylinder(0.9, 10.0 + i, 8, 'z'),
-                (-24.0 + i * 8.0, -16.0 + (i % 3) * 5.0, -9.0))
-    pins = part("MODULE_B_PINES_HACIA_A", "metal_steel", gB)
-    for sx in (-1.0, 1.0):
-        for sy in (-1.0, 1.0):
-            pins.solid(prim_cylinder(2.0, 14.0, 10, 'z'),
-                       (sx * 20.0, sy * 22.0, -6.0))
-
-    # --- postes de direccion (cabeza redonda) en los que se TRABA
-    # deslizando el soporte de los engranajes medianos --------------------
+    # --- palos de direccion (cabeza redonda) en los que se TRABA deslizando
+    # el soporte de los engranajes medianos -------------------------------
     posts = part("MODULE_B_POSTES_DIRECCION", "metal_steel", gB)
     for sy in (-1.0, 1.0):
         posts.solid(prim_box(20.0, 26.0, 8.0), (0.0, sy * 42.0, -3.0))
@@ -789,33 +745,21 @@ def build_modules():
     guias = part("MODULE_B_GUIAS_ESTRUCTURA", "plastic_white", gB)
     for sx in (-1.0, 1.0):
         for sy in (-1.0, 1.0):
-            guias.solid(prim_box(16.0, 30.0, 6.0), (sx * 40.0, sy * 40.0, -2.0))
             _guia_deslizante(guias, sx * 40.0, sy * BEAR_Y, -8.0, 16.0, 20.0)
 
-    module_shell("MODULE_C_CARCASA", "plastic_white",
-                 "MODULE C: DOS MOTORES & POWER (BATT)",
-                 MOD_C_Z[1], MOD_C_Z[0], gC, huecos=((MOTOR_X, 14.0),))
-    # el panel lleva una muesca: por ahi sale el eje del motor A
-    panel_c = part("MODULE_C_PANEL_TRANSPARENTE", "plastic_clear", gC)
-    for a, b in ((-46.0, -MOTOR_X - 7.0), (-MOTOR_X + 7.0, 46.0)):
-        panel_c.solid(prim_box(b - a, 2.0, 46.0), ((a + b) / 2.0, 36.0, -62.5))
-    # DOS motores, uno a cada lado del central. Cada uno saca su eje hacia su
-    # costado (A hacia +Y, B hacia -Y) hasta el pinon de su cadena.
+    caja_hueca("MODULE_C_CARCASA", "plastic_white",
+               "MODULE C: CAJA HUECA + 2 MOTORES",
+               MOD_C_Z[1], MOD_C_Z[0], gC,
+               huecos=((MOTOR_X, 14.0),), huecos_frente=((-MOTOR_X, 14.0),))
+    # DOS motores, cada uno saca su PALO (el eje) por su costado hasta el
+    # pinon de su cadena: es la unica pieza de dentro que se conserva.
     for x, signo, lado in ((-MOTOR_X, 1.0, "A"), (MOTOR_X, -1.0, "B")):
         motor = part("MODULE_C_MOTOR_%s" % lado, "metal_dark", gC)
         motor.solid(prim_box(34.0, 34.0, 32.0), (x, signo * -8.0, PINON_Z))
-        motor.solid(prim_cylinder(14.0, 4.0, 20, 'y'),
-                    (x, signo * -8.0 + signo * 17.0, PINON_Z))
         part("MODULE_C_EJE_MOTOR_%s" % lado, "metal_steel", gC).solid(
             prim_cylinder(4.0, 86.0, 16, 'y'), (x, signo * 52.0, PINON_Z))
 
-    # bateria encima de los dos motores (no se solapan dentro del modulo C)
-    bat = part("MODULE_C_BATERIA_LITIO", "battery_pack", gC)
-    bat.solid(prim_box(54.0, 22.0, 12.0), (0.0, 0.0, -46.0))
-    for i in range(3):
-        bat.solid(prim_cylinder(6.0, 50.0, 16, 'x'), (0.0, -6.0 + i * 6.0, -46.0))
-    bat.solid(prim_box(12.0, 6.0, 8.0), (16.0, 14.0, -46.0))
-
+    # palos que unen los modulos entre si
     module_pins(gA, 0.0)
     module_pins(gB, -35.0)
 
@@ -996,9 +940,9 @@ def write_3mf(path):
 # grupo -> (prefijo, nombre de archivo)
 GROUP_META = {
     TOP_GROUP: ("T", "CONJUNTO_SUPERIOR"),
-    "MODULE A: ENGRANAJES MEDIOS (SIN TAPA)": ("A", "MODULE_A_ENGRANAJES"),
-    "MODULE B: BREADBOARD & WIRING": ("B", "MODULE_B_BREADBOARD"),
-    "MODULE C: DOS MOTORES & POWER (BATT)": ("C", "MODULE_C_MOTOR_POWER"),
+    "MODULE A: CAJA HUECA (SIN TAPA)": ("A", "MODULE_A_CAJA"),
+    "MODULE B: CAJA HUECA + POSTES": ("B", "MODULE_B_CAJA"),
+    "MODULE C: CAJA HUECA + 2 MOTORES": ("C", "MODULE_C_CAJA"),
     # solo aparece si se vuelve a activar CON_TENSOR_INFERIOR
     "TENSOR DE CABLE (RODILLO + RESORTE)": ("X", "TENSOR_CABLE"),
 }
@@ -1013,7 +957,7 @@ def bbox(parts):
 
 
 def write_stl_groups(folder):
-    """Un STL por CONJUNTO (5 archivos) + tabla de posiciones para Tinkercad.
+    """Un STL por CONJUNTO (4 archivos) + tabla de posiciones para Tinkercad.
 
     Tinkercad no permite subir varios archivos a la vez y centra cada
     importacion en el origen, asi que cada conjunto viene con la posicion
@@ -1101,9 +1045,9 @@ def write_stl_parts(folder, escala=1.0):
 LABELS = [
     ("2 ENGRANAJES MEDIOS (UNO POR CARA, PEGADOS A LA CAJA)", (0.0, 0.0, 30.0)),
     ("BARRA QUE UNE LOS 2 EJES MEDIANOS", (0.0, 22.0, ENGR_MEDIO_Z + 8.0)),
-    ("MODULE A: SIN TAPA (REFORZADO)", (0.0, 45.0, 30.0)),
-    ("MODULE B: BREADBOARD + POSTES DE DESLIZAMIENTO", (0.0, 45.0, -18.0)),
-    ("MODULE C: DOS MOTORES & POWER (BATT)", (0.0, 45.0, -62.0)),
+    ("MODULE A: CAJA HUECA (SIN TAPA)", (0.0, 45.0, 30.0)),
+    ("MODULE B: CAJA HUECA + POSTES", (0.0, 45.0, -18.0)),
+    ("MODULE C: CAJA HUECA + 2 MOTORES", (0.0, 45.0, -62.0)),
     ("DOS RUEDAS DE TRACCION", (-VANO, 0.0, 130.0)),
     ("4 CADENAS: 2 MOTORES -> 2 MEDIANOS -> RUEDAS", (-MOTOR_X, PLANO_MOTOR_A, -20.0)),
     ("ESTRUCTURA IMPRESA (MADERA 3D)", (0.0, 74.0, WHEEL_Z)),

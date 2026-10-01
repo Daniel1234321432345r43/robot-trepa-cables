@@ -1,56 +1,40 @@
-ROBOT MODULAR SOBRE CABLE - indice de piezas (49)
+ROBOT MODULAR SOBRE CABLE - indice de piezas (33)
 Medidas reales en milimetros. OJO: Tinkercad centra cada import
 en el origen, asi que si cargas varias aparecen superpuestas:
 muevelas para componer el robot (o usa robot_modular.obj en Blender,
 que mantiene las piezas como objetos separados ya colocados).
 T=conjunto superior, A/B/C=modulos
 
-A_MODULE_A_CARCASA.stl               tris=144    vol=    86440 mm3   MODULE A: 2 ENGRANAJES MEDIOS (SIN TAPA)
-A_MODULE_A_PANEL_TRANSPARENTE.stl    tris=24     vol=     5472 mm3   MODULE A: ENGRANAJES MEDIOS (SIN TAPA)
-A_MODULE_A_PLACA_LABEL.stl           tris=12     vol=     1680 mm3   MODULE A: ENGRANAJES MEDIOS (SIN TAPA)
-A_PINES_UNION_MODULOS_Z+0.stl        tris=224    vol=     2381 mm3   MODULE A: ENGRANAJES MEDIOS (SIN TAPA)
-B_MODULE_B_BREADBOARD_MINI.stl       tris=144    vol=    15258 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_CARCASA.stl               tris=84     vol=    89040 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_COMPONENTES.stl           tris=192    vol=      708 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_GUIAS_ESTRUCTURA.stl      tris=192    vol=    18880 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_JUMPER_00.stl             tris=32     vol=       23 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_JUMPER_01.stl             tris=32     vol=       25 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_JUMPER_02.stl             tris=32     vol=       27 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_JUMPER_03.stl             tris=32     vol=       30 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_JUMPER_04.stl             tris=32     vol=       32 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_JUMPER_05.stl             tris=32     vol=       34 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_JUMPER_06.stl             tris=32     vol=       37 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_PANEL_TRANSPARENTE.stl    tris=12     vol=     4368 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_PINES_HACIA_A.stl         tris=160    vol=      658 mm3   MODULE B: BREADBOARD & WIRING
-B_MODULE_B_POSTES_DIRECCION.stl      tris=312    vol=    10148 mm3   MODULE B: BREADBOARD & WIRING
-B_PINES_UNION_MODULOS_Z-35.stl       tris=224    vol=     2381 mm3   MODULE B: BREADBOARD & WIRING
-C_MODULE_C_BATERIA_LITIO.stl         tris=216    vol=    31364 mm3   MODULE C: DOS MOTORES & POWER (BATT)
-C_MODULE_C_CARCASA.stl               tris=96     vol=   104840 mm3   MODULE C: DOS MOTORES & POWER (BATT)
-C_MODULE_C_EJE_MOTOR_A.stl           tris=64     vol=     4213 mm3   MODULE C: DOS MOTORES & POWER (BATT)
-C_MODULE_C_EJE_MOTOR_B.stl           tris=64     vol=     4213 mm3   MODULE C: DOS MOTORES & POWER (BATT)
-C_MODULE_C_MOTOR_A.stl               tris=92     vol=    39415 mm3   MODULE C: DOS MOTORES & POWER (BATT)
-C_MODULE_C_MOTOR_B.stl               tris=92     vol=    39415 mm3   MODULE C: DOS MOTORES & POWER (BATT)
-C_MODULE_C_PANEL_TRANSPARENTE.stl    tris=24     vol=     7176 mm3   MODULE C: DOS MOTORES & POWER (BATT)
-T_ABRAZADERA_AL_CABLE.stl            tris=216    vol=    52256 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_BARRA_UNE_EJES_MEDIANOS.stl        tris=80     vol=     4450 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_CABLE_METAL_TENSADO.stl            tris=80     vol=    10012 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_CADENA_MOTOR_A.stl                 tris=1856   vol=     7904 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_CADENA_MOTOR_B.stl                 tris=1856   vol=     7904 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_CADENA_RUEDAS_A.stl                tris=2816   vol=    12072 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_CADENA_RUEDAS_B.stl                tris=2816   vol=    12072 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_EJE_ENGRANAJE_MEDIO_A.stl          tris=96     vol=     6522 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_EJE_ENGRANAJE_MEDIO_B.stl          tris=96     vol=     6522 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_EJE_METALICO_RUEDA_DER.stl         tris=224    vol=    12319 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_EJE_METALICO_RUEDA_IZQ.stl         tris=224    vol=    12319 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_ENGRANAJE_MEDIO_A.stl              tris=456    vol=     5155 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_ENGRANAJE_MEDIO_B.stl              tris=456    vol=     5155 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+A_MODULE_A_CARCASA.stl               tris=60     vol=    89200 mm3   MODULE A: CAJA HUECA (SIN TAPA)
+A_PINES_UNION_MODULOS_Z+0.stl        tris=96     vol=     2037 mm3   MODULE A: CAJA HUECA (SIN TAPA)
+B_MODULE_B_CARCASA.stl               tris=72     vol=   103600 mm3   MODULE B: CAJA HUECA + POSTES
+B_MODULE_B_GUIAS_ESTRUCTURA.stl      tris=144    vol=     7360 mm3   MODULE B: CAJA HUECA + POSTES
+B_MODULE_B_POSTES_DIRECCION.stl      tris=152    vol=     9994 mm3   MODULE B: CAJA HUECA + POSTES
+B_PINES_UNION_MODULOS_Z-35.stl       tris=96     vol=     2037 mm3   MODULE B: CAJA HUECA + POSTES
+C_MODULE_C_CARCASA.stl               tris=96     vol=   124640 mm3   MODULE C: CAJA HUECA + 2 MOTORES
+C_MODULE_C_EJE_MOTOR_A.stl           tris=28     vol=     3765 mm3   MODULE C: CAJA HUECA + 2 MOTORES
+C_MODULE_C_EJE_MOTOR_B.stl           tris=28     vol=     3765 mm3   MODULE C: CAJA HUECA + 2 MOTORES
+C_MODULE_C_MOTOR_A.stl               tris=12     vol=    36992 mm3   MODULE C: CAJA HUECA + 2 MOTORES
+C_MODULE_C_MOTOR_B.stl               tris=12     vol=    36992 mm3   MODULE C: CAJA HUECA + 2 MOTORES
+T_BARRA_UNE_EJES_MEDIANOS.stl        tris=36     vol=     4165 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_CABLE_METAL_TENSADO.stl            tris=36     vol=     9372 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_CADENA_MOTOR_A.stl                 tris=760    vol=     5805 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_CADENA_MOTOR_B.stl                 tris=760    vol=     5805 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_CADENA_RUEDAS_A.stl                tris=1160   vol=     8919 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_CADENA_RUEDAS_B.stl                tris=1160   vol=     8919 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_EJE_ENGRANAJE_MEDIO_A.stl          tris=44     vol=     6244 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_EJE_ENGRANAJE_MEDIO_B.stl          tris=44     vol=     6244 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_EJE_METALICO_RUEDA_DER.stl         tris=100    vol=    11761 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_EJE_METALICO_RUEDA_IZQ.stl         tris=100    vol=    11761 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_ENGRANAJE_MEDIO_A.stl              tris=352    vol=     5034 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_ENGRANAJE_MEDIO_B.stl              tris=352    vol=     5034 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
 T_ESTRUCTURA_IMPRESA_MADERA.stl      tris=192    vol=    57088 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_PINONES_MOTORES.stl                tris=480    vol=     6110 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_PINONES_RUEDAS.stl                 tris=960    vol=    12221 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_POLEA_BLANCA_RUEDA_DER.stl         tris=944    vol=    44163 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_POLEA_BLANCA_RUEDA_IZQ.stl         tris=944    vol=    44163 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_POLEA_GOMA_TRACCION_DER.stl        tris=800    vol=    18786 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_POLEA_GOMA_TRACCION_IZQ.stl        tris=800    vol=    18786 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_SOPORTES_RODAMIENTO_ENGRANAJES_MEDIOS.stl tris=1752   vol=    47201 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_SOPORTES_RODAMIENTO_RUEDA_DER.stl  tris=1368   vol=    48695 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
-T_SOPORTES_RODAMIENTO_RUEDA_IZQ.stl  tris=1368   vol=    48695 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_PINONES_MOTORES.stl                tris=376    vol=     5957 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_PINONES_RUEDAS.stl                 tris=752    vol=    11915 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_POLEA_BLANCA_RUEDA_DER.stl         tris=428    vol=    42248 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_POLEA_BLANCA_RUEDA_IZQ.stl         tris=428    vol=    42248 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_POLEA_GOMA_TRACCION_DER.stl        tris=296    vol=    12352 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_POLEA_GOMA_TRACCION_IZQ.stl        tris=296    vol=    12352 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_SOPORTES_RODAMIENTO_ENGRANAJES_MEDIOS.stl tris=760    vol=    46015 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_SOPORTES_RODAMIENTO_RUEDA_DER.stl  tris=376    vol=    47509 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS
+T_SOPORTES_RODAMIENTO_RUEDA_IZQ.stl  tris=376    vol=    47509 mm3   SUPERIOR: 2 RUEDAS + 2 ENGRANAJES MEDIOS

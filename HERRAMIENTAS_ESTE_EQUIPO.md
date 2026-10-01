@@ -24,7 +24,7 @@ Instalado **sin permisos de administrador**: se descargaron los 12 `.deb`
 (40 MB). Nada del sistema se tocó.
 
 Comprobado: abre `robot_modular.obj` — el ensamblaje completo, **38 piezas y
-12.324 triángulos** en aquel momento (ahora son 49 y 23.476) — en 104 ms, con
+12.324 triángulos** en aquel momento (ahora son 33 y 9.980) — en 104 ms, con
 OpenGL 4.5 por software.
 
 - Lanzador: `meshlab` (está en el PATH, vía `~/.local/bin/meshlab`).
@@ -43,7 +43,7 @@ extracción local aunque la ruta del sistema no exista.
 Nombres de filtro **verificados en los propios plugins** de esta instalación
 (`grep` sobre `libedit_select.so`, `libfilter_select.so` y `libfilter_layer.so`):
 
-1. Olvida el archivo único: importa `stl_grupos/*.stl` (los 5 conjuntos). Cada
+1. Olvida el archivo único: importa `stl_grupos/*.stl` (los 4 conjuntos). Cada
    archivo entra como **una capa propia**. Si MeshLab pregunta si quieres
    fusionarlas, responde que **no**.
 2. Para aislar dentro de una capa, en el menú **Filters > Selection**:
